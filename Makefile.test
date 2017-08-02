@@ -11,6 +11,7 @@ endif
 ifeq ($(use_lto),n)
 .PHONY: test
 test: $(test_runner)
+	exec ./$<
 
 $(test_runner): $(tmpdir)/test_main.o $(filter-out $(tmpdir)/test/test.o $(tmpdir)/main.o, $(objects))
 	@mkdir -p -- $(@D)

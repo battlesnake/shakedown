@@ -7,12 +7,13 @@ SHELL = bash
 .DELETE_ON_ERROR:
 .SECONDARY:
 
-w_flags =
-c_flags =
+w_flags = -Wall -Wextra -Wno-unused-parameter -Werror
+c_flags = -ffunction-sections -fdata-sections
+ldflags = -Wl,--gc-sections
+asflags =
 cflags =
 cxxflags =
-ldflags =
-asflags =
+
 
 c_std = gnu11
 cxx_std = c++14
@@ -22,12 +23,27 @@ include_dirs = $(shell find -type d -name 'include')
 includes =
 libs =
 
+source_exclude =
+
 ifeq ($(V),)
 MAKEFLAGS += -s
 endif
 
 # Language of program (used to choose gcc/g++ for linking)
 language ?= c
+
+# Useful logging functions
+define log_action
+	@printf "  $$(tput bold)[%s]$$(tput sgr0)\t %s\n" "$(strip $(1))" "$(strip $(2))"
+endef
+
+define log_info
+$(shell [ "$(V)" ] && printf " $$(tput bold)-$$(tput sgr0) $$(tput sitm)%s$$(tput sgr0)\n" "$(strip $(1))" >&2)
+endef
+
+define log_var
+$(call log_info, $(1) = $($(strip $1)))
+endef
 
 # Include project makefile if one exists
 -include Makefile.project
@@ -38,11 +54,17 @@ language ?= c
 project_name ?= program
 
 # Optimisiation level
-o ?= g
+o := $(firstword $(o) $(O) g)
+
+$(call log_var, o)
 
 # Build directory
-buildbasedir ?= .build
-builddir ?= $(buildbasedir)/$(o)
+build_base ?= .build
+build_profile ?= $(o)
+build_dir ?= $(build_base)/$(build_profile)
+
+$(call log_var, build_profile)
+$(call log_var, build_dir)
 
 # Output directory
 outdir ?= bin
@@ -52,25 +74,31 @@ tmpdir ?= tmp
 
 # Create directories as needed, update symlinks
 $(shell ( \
-	mkdir -p -- $(builddir)/$(outdir); \
-	mkdir -p -- $(builddir)/$(tmpdir); \
+	mkdir -p -- $(build_dir)/$(outdir); \
+	mkdir -p -- $(build_dir)/$(tmpdir); \
 	rm -f $(outdir) $(tmpdir); \
-	ln -sf $(builddir)/$(outdir) $(outdir); \
-	ln -sf $(builddir)/$(tmpdir) $(tmpdir); \
+	ln -sf $(build_dir)/$(outdir) $(outdir); \
+	ln -sf $(build_dir)/$(tmpdir) $(tmpdir); \
 ) >&2 )
 
 # Output filenames
 program ?= $(outdir)/$(project_name)
 
 # Inputs
-collect_files = $(patsubst ./%.$(strip $1), $(tmpdir)/%.$(strip $2), $(shell find -name '*.$(strip $1)' -type f -not -path './$(tmpdir)/*' -not -path './$(outdir)/*'))
+source_root ?= .
+source_exclude += $(tmpdir) $(outdir)
+collect_files = $(patsubst $(source_root)/%.$(strip $1), $(tmpdir)/%.$(strip $2), $(shell find $(source_root) -name '*.$(strip $1)' -type f $(source_exclude:%=-not -path './%/*' )))
+
+$(call log_var, program)
+$(call log_var, source_root)
+$(call log_var, source_exclude)
 
 # Objects
 objects += $(call collect_files, s, os)
 objects += $(call collect_files, c, o)
 objects += $(call collect_files, cpp, oxx)
 
-libs ?= m c gcc
+$(call log_var, objects)
 
 -include Makefile.objects
 
@@ -93,9 +121,6 @@ LD = $(CXX)
 endif
 
 # Compiler/linker flags
-w_flags ?= -Wall -Wextra -Wno-unused-parameter -Werror
-
-c_flags ?= -ffunction-sections -fdata-sections
 c_flags += $(w_flags) -O$(o) -g -MMD -MP -MF $@.d -c
 c_flags += $(addprefix -I,$(include_dirs))
 c_flags += $(addprefix -i,$(includes))
@@ -105,17 +130,14 @@ cflags += $(c_flags) -std=$(c_std)
 
 cxxflags += $(c_flags) -std=$(cxx_std)
 
-ldflags ?= -Wl,--gc-sections
 ldflags += $(w_flags) -O$(o) -g
 ldflags += $(addprefix -l,$(libs))
 
-asflags ?=
-
 # Link-time optimisation enabled if optimisation level is above "debug"
 ifneq ($(filter-out 0 g, $(O)),)
-use_lto ?= y
+use_lto := $(firstword $(use_lto) y)
 else
-use_lto ?= n
+use_lto := $(firstword $(use_lto) n)
 endif
 
 # Note: LTO breaks the symbol redefinition trick used to generate test binary
@@ -123,10 +145,6 @@ ifeq ($(use_lto),y)
 c_flags += -flto
 ldflags += -flto
 endif
-
-define log_action
-	@[ "$V" ] || printf "  [%s]\t %s\n" "$(strip $(1))" "$(strip $(2))"
-endef
 
 .PHONY: all
 all: $(program)
@@ -136,8 +154,8 @@ build: $(program)
 
 .PHONY: clean
 clean:: cleanlinks
-	$(call log_action, RM, $(builddir))
-	rm -rf $(builddir)
+	$(call log_action, RM, $(build_dir))
+	rm -rf $(build_dir)
 
 .PHONY: cleanlinks
 cleanlinks::
@@ -148,13 +166,13 @@ cleanlinks::
 
 .PHONY: cleanall
 cleanall:: cleanlinks
-	$(call log_action, RM, $(buildbasedir))
-	rm -rf $(buildbasedir)
+	$(call log_action, RM, $(build_base))
+	rm -rf $(build_base)
 
 $(program): $(objects)
 	@mkdir -p -- $(@D)
 	$(call log_action, LD, $@)
-	$(LD) $(ldflags) -o $@ $^
+	$(LD) $^ -o $@ $(ldflags)
 	@size $@
 
 $(filter %.o, $(objects)): $(tmpdir)/%.o: %.c

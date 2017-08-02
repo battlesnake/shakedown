@@ -20,8 +20,4 @@
 # c_std =
 # cxx_std =
 
-.DEFAULT: all
-
-# Run test runner on "test" target
-test:
-	exec ./$(test_runner)
+.DEFAULT_GOAL := all
