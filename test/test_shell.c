@@ -30,7 +30,7 @@ static int get_command(char *cmd, int *arg)
 	if (len == 0 || buf[0] == '\n') {
 		return 0;
 	}
-	if (buf[len - 1] = '\n') {
+	if (buf[len - 1] == '\n') {
 		buf[--len] = 0;
 	}
 	*cmd = buf[0];
@@ -50,7 +50,7 @@ void test_shell()
 	bool quit = false;
 	while (!quit) {
 		char c;
-		int idx;
+		int idx = -2;
 		printf("test$ ");
 		int fields = get_command(&c, &idx);
 		if (fields == EOF) {
