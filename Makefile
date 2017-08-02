@@ -1,9 +1,12 @@
+### Master makefile
+
 MAKEFLAGS += -rR
 W_FLAGS =
 C_FLAGS =
 CFLAGS =
 CXXFLAGS =
 LDFLAGS =
+ASFLAGS =
 
 ifeq ($(V),)
 MAKEFLAGS += -s
@@ -37,7 +40,6 @@ $(shell ( \
 
 # Output filenames
 program ?= $(outdir)/$(project_name)
-test_runner ?= $(outdir)/test
 
 # Inputs
 sources ?= $(patsubst ./%, %, $(shell find -name '*.c' -type f -not -path './$(tmpdir)/*' -not -path './$(outdir)/*'))
@@ -63,6 +65,8 @@ endif
 
 OBJCOPY = $(CROSS_COMPILE)objcopy
 
+AS = $(CROSS_COMPILE)as
+
 # Compiler/linker flags
 W_FLAGS ?= -Wall -Wextra -Wno-unused-parameter -Werror
 
@@ -74,38 +78,32 @@ CFLAGS += $(C_FLAGS) -std=gnu11
 CXXFLAGS += $(C_FLAGS) -std=gnu++14
 
 LDFLAGS ?= -Wl,--gc-sections
-LDFLAGS ?= $(W_FLAGS) -O$(O) -g
+LDFLAGS += $(W_FLAGS) -O$(O) -g
 
-# Link-time optimisation if optimisation level is above "debug"
-# Note: LTO breaks the symbol redefinition trick used to generate test binary
+ASFLAGS ?=
+
+# Link-time optimisation enabled if optimisation level is above "debug"
 ifneq ($(filter-out 0 g, $(O)),)
-ifneq ($(use_lto),n)
-CFLAGS += -flto
-LDFLAGS += -flto
-use_lto := y
-endif
+use_lto ?= y
 else
-use_lto := n
+use_lto ?= n
 endif
 
-.PHONY: all
-all: $(program)
-
-# Do not build test runner if LTO is enabled
-ifeq ($(use_lto),n)
-all: $(test_runner)
+# Note: LTO breaks the symbol redefinition trick used to generate test binary
+ifeq ($(use_lto),y)
+C_FLAGS += -flto
+LDFLAGS += -flto
 endif
 
 define log_action
 	@[ "$V" ] || printf "  [%s]\t %s\n" "$(strip $(1))" "$(strip $(2))"
 endef
 
+.PHONY: all
+all: $(program)
+
 .PHONY: build
 build: $(program)
-
-.PHONY: test
-test: $(test_runner)
-	./$< $(tests)
 
 .PHONY: clean
 clean: cleanlinks
@@ -130,18 +128,6 @@ $(program): $(objects)
 	$(LD) $(LDFLAGS) -o $@ $^
 	@size $@
 
-ifeq ($(use_lto),n)
-$(test_runner): $(tmpdir)/test_main.o $(filter-out $(tmpdir)/test/test.o $(tmpdir)/main.o, $(objects))
-	@mkdir -p -- $(@D)
-	$(call log_action, LD, $@)
-	$(LD) $(LDFLAGS) -o $@ $^
-
-$(tmpdir)/test_main.o: $(tmpdir)/test/test.o
-	@mkdir -p -- $(@D)
-	$(call log_action, OC, $@)
-	$(OBJCOPY) --redefine-sym test_main=main $< $@
-endif
-
 $(filter %.o, $(objects)): $(tmpdir)/%.o: %.c
 	@mkdir -p -- $(@D)
 	$(call log_action, CC, $@)
@@ -151,5 +137,12 @@ $(filter %.oxx, $(objects)): $(tmpdir)/%.oxx: %.cpp
 	@mkdir -p -- $(@D)
 	$(call log_action, CXX, $@)
 	$(CXX) $(CXXFLAGS) -o $@ $<
+
+$(filter %.os, $(objects)): $(tmpdir)/%.os: %.s
+	@mkdir -p -- $(@D)
+	$(call log_action, AS, $@)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+include Makefile.test
 
 -include $(shell find $(tmpdir) -name '*.d' -type f 2>/dev/null)
