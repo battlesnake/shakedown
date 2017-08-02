@@ -16,9 +16,22 @@ struct TestSuite *test_suites[] = {
 };
 #undef X
 
-static struct TestSuite *current_suite = NULL;
+/* Write test log to this file */
+FILE *test_log_target;
 
+static FILE *get_test_log_file()
+{
+	if (test_log_target == NULL) {
+		test_log_target = TEST_LOG_TARGET;
+	}
+	return test_log_target;
+}
+
+/* Do not log successful tests */
 bool test_log_quiet = false;
+
+/* Suite currently being run */
+static struct TestSuite *current_suite = NULL;
 
 static void test_counter_reset(struct TestCounter *counter)
 {
@@ -161,7 +174,7 @@ static void print_prefix(const char *format, const char *file, const int line, c
 	const size_t f_len = f_end - f_begin;
 	char f_buf[f_len + 1];
 	snprintf(f_buf, f_len + 1, "%s", f_begin);
-	fprintf(TEST_LOG_TARGET, format, f_buf, line, func);
+	fprintf(get_test_log_file(), format, f_buf, line, func);
 }
 
 void _test_log(const char *file, const int line, const char *func, const char *format, ...)
@@ -170,15 +183,15 @@ void _test_log(const char *file, const int line, const char *func, const char *f
 
 	va_list ap;
 	va_start(ap, format);
-	vfprintf(TEST_LOG_TARGET, format, ap);
+	vfprintf(get_test_log_file(), format, ap);
 	va_end(ap);
 
-	fprintf(TEST_LOG_TARGET, "\n");
+	fprintf(get_test_log_file(), "\n");
 }
 
 void _test_log_nl(const char *file, const int line, const char *func)
 {
-	fprintf(TEST_LOG_TARGET, "\n");
+	fprintf(get_test_log_file(), "\n");
 }
 
 #endif
@@ -189,10 +202,10 @@ void _test_error(const char *file, const int line, const char *func, const char 
 
 	va_list ap;
 	va_start(ap, format);
-	vfprintf(TEST_LOG_TARGET, format, ap);
+	vfprintf(get_test_log_file(), format, ap);
 	va_end(ap);
 
-	fprintf(TEST_LOG_TARGET, "\n");
+	fprintf(get_test_log_file(), "\n");
 }
 
 struct TestSuite *test_find_by_name(const char *name)

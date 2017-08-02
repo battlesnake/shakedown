@@ -28,11 +28,12 @@
  */
 // #define TEST_MAIN_NOARGS
 
-/* Define file where we log to */
+/* Define file where we log test info to (TEST_LOG_TARGET if NULL) */
+extern FILE *test_log_target;
+
 #if ! defined TEST_LOG_TARGET
 #define TEST_LOG_TARGET stderr
 #endif
-extern FILE *TEST_LOG_TARGET;
 
 /* Define to shorten logged source names to N path components */
 #define TEST_LOG_SHORT_FILENAME 2
