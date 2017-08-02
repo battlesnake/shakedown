@@ -20,3 +20,6 @@
 # cxx_std =
 
 .DEFAULT: all
+
+test:
+	exec ./$(test_runner)
