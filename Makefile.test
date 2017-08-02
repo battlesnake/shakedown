@@ -15,7 +15,7 @@ test: $(test_runner)
 $(test_runner): $(tmpdir)/test_main.o $(filter-out $(tmpdir)/test/test.o $(tmpdir)/main.o, $(objects))
 	@mkdir -p -- $(@D)
 	$(call log_action, LD, $@)
-	$(LD) $(LDFLAGS) -o $@ $^
+	$(LD) $(ldflags) -o $@ $^
 
 $(tmpdir)/test_main.o: $(tmpdir)/test/test.o
 	@mkdir -p -- $(@D)

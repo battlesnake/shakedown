@@ -22,4 +22,4 @@ defines += patch_version=$(patch_version)
 defines += git_commit="$(git_commit_id)"
 defines += git_commit_abbrev="$(git_commit_abbrev_id)"
 defines += git_branch="$(git_branch)"
-defines += git_dirty="$(git_dirty)" 
+defines += git_dirty="$(git_dirty)"

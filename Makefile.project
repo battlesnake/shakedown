@@ -4,11 +4,11 @@
 # sources =
 # language = c++
 
-# CROSS_COMPILE =
-# W_FLAGS =
-# C_FLAGS =
-# CFLAGS +=
-# CXXFLAGS +=
+# cross_compile =
+# w_flags =
+# c_flags =
+# cflags +=
+# cxxflags +=
 
 # language =
 
@@ -22,5 +22,6 @@
 
 .DEFAULT: all
 
+# Run test runner on "test" target
 test:
 	exec ./$(test_runner)

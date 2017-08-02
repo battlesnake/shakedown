@@ -7,12 +7,12 @@ SHELL = bash
 .DELETE_ON_ERROR:
 .SECONDARY:
 
-W_FLAGS =
-C_FLAGS =
-CFLAGS =
-CXXFLAGS =
-LDFLAGS =
-ASFLAGS =
+w_flags =
+c_flags =
+cflags =
+cxxflags =
+ldflags =
+asflags =
 
 c_std = gnu11
 cxx_std = c++14
@@ -38,11 +38,11 @@ language ?= c
 project_name ?= program
 
 # Optimisiation level
-O ?= g
+o ?= g
 
 # Build directory
 buildbasedir ?= .build
-builddir ?= $(buildbasedir)/$(O)
+builddir ?= $(buildbasedir)/$(o)
 
 # Output directory
 outdir ?= bin
@@ -75,7 +75,7 @@ libs ?= m c gcc
 -include Makefile.objects
 
 # Toolchain configuration
-CROSS_COMPILE ?=
+CROSS_COMPILE ?= $(cross_compile)
 
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
@@ -93,23 +93,23 @@ LD = $(CXX)
 endif
 
 # Compiler/linker flags
-W_FLAGS ?= -Wall -Wextra -Wno-unused-parameter -Werror
+w_flags ?= -Wall -Wextra -Wno-unused-parameter -Werror
 
-C_FLAGS ?= -ffunction-sections -fdata-sections
-C_FLAGS += $(W_FLAGS) -O$(O) -g -MMD -MP -MF $@.d -c
-C_FLAGS += $(addprefix -I,$(include_dirs))
-C_FLAGS += $(addprefix -i,$(includes))
-C_FLAGS += $(addprefix -D,$(defines))
+c_flags ?= -ffunction-sections -fdata-sections
+c_flags += $(w_flags) -O$(o) -g -MMD -MP -MF $@.d -c
+c_flags += $(addprefix -I,$(include_dirs))
+c_flags += $(addprefix -i,$(includes))
+c_flags += $(addprefix -D,$(defines))
 
-CFLAGS += $(C_FLAGS) -std=$(c_std)
+cflags += $(c_flags) -std=$(c_std)
 
-CXXFLAGS += $(C_FLAGS) -std=$(cxx_std)
+cxxflags += $(c_flags) -std=$(cxx_std)
 
-LDFLAGS ?= -Wl,--gc-sections
-LDFLAGS += $(W_FLAGS) -O$(O) -g
-LDFLAGS += $(addprefix -l,$(libs))
+ldflags ?= -Wl,--gc-sections
+ldflags += $(w_flags) -O$(o) -g
+ldflags += $(addprefix -l,$(libs))
 
-ASFLAGS ?=
+asflags ?=
 
 # Link-time optimisation enabled if optimisation level is above "debug"
 ifneq ($(filter-out 0 g, $(O)),)
@@ -120,8 +120,8 @@ endif
 
 # Note: LTO breaks the symbol redefinition trick used to generate test binary
 ifeq ($(use_lto),y)
-C_FLAGS += -flto
-LDFLAGS += -flto
+c_flags += -flto
+ldflags += -flto
 endif
 
 define log_action
@@ -154,23 +154,23 @@ cleanall: cleanlinks
 $(program): $(objects)
 	@mkdir -p -- $(@D)
 	$(call log_action, LD, $@)
-	$(LD) $(LDFLAGS) -o $@ $^
+	$(LD) $(ldflags) -o $@ $^
 	@size $@
 
 $(filter %.o, $(objects)): $(tmpdir)/%.o: %.c
 	@mkdir -p -- $(@D)
 	$(call log_action, CC, $@)
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(cflags) -o $@ $<
 
 $(filter %.oxx, $(objects)): $(tmpdir)/%.oxx: %.cpp
 	@mkdir -p -- $(@D)
 	$(call log_action, CXX, $@)
-	$(CXX) $(CXXFLAGS) -o $@ $<
+	$(CXX) $(cxxflags) -o $@ $<
 
 $(filter %.os, $(objects)): $(tmpdir)/%.os: %.s
 	@mkdir -p -- $(@D)
 	$(call log_action, AS, $@)
-	$(AS) $(ASFLAGS) -o $@ $<
+	$(AS) $(asflags) -o $@ $<
 
 # Include makefile for test runner, if available
 -include Makefile.test
