@@ -135,19 +135,19 @@ all: $(program)
 build: $(program)
 
 .PHONY: clean
-clean: cleanlinks
+clean:: cleanlinks
 	$(call log_action, RM, $(builddir))
 	rm -rf $(builddir)
 
 .PHONY: cleanlinks
-cleanlinks:
+cleanlinks::
 	$(call log_action, RM, $(outdir))
 	rm -rf $(outdir)
 	$(call log_action, RM, $(tmpdir))
 	rm -rf $(tmpdir)
 
 .PHONY: cleanall
-cleanall: cleanlinks
+cleanall:: cleanlinks
 	$(call log_action, RM, $(buildbasedir))
 	rm -rf $(buildbasedir)
 
