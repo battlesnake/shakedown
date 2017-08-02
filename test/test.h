@@ -186,7 +186,7 @@ void _test_error(const char *file, const int line, const char *func, const char 
 #define TEST_LOG_ERROR_FORMAT_STR \
 		" " \
 		TEST_ANSI_FG_CYAN("[") \
-		TEST_ANSI_FG_RED("%24.24s" )\
+		TEST_ANSI_FG_RED("%24.24s") \
 		TEST_ANSI_FG_CYAN(":") \
 		TEST_ANSI_FG_RED("%3u") \
 		TEST_ANSI_FG_CYAN("]") \

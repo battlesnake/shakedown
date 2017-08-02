@@ -267,8 +267,7 @@ void test_checklist_deselect(int index)
 	}
 }
 
-#if defined TEST_MAIN
-int TEST_MAIN(int argc, char *argv[])
+int test_main(int argc, char *argv[])
 {
 	/* Select all tests if none were specified; otherwise, deselect all */
 	for (struct TestSuite **it = test_suites; *it != NULL; ++it) {
@@ -290,4 +289,3 @@ int TEST_MAIN(int argc, char *argv[])
 	test_checklist_print("Checklist post-run");
 	return result;
 }
-#endif
