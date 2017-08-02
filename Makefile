@@ -19,7 +19,8 @@ cxx_std = c++14
 
 defines =
 include_dirs = $(shell find -type d -name 'include')
-include =
+includes =
+libs =
 
 ifeq ($(V),)
 MAKEFLAGS += -s
@@ -69,6 +70,8 @@ objects += $(call collect_files, s, os)
 objects += $(call collect_files, c, o)
 objects += $(call collect_files, cpp, oxx)
 
+libs ?= m c gcc
+
 -include Makefile.objects
 
 # Toolchain configuration
@@ -104,6 +107,7 @@ CXXFLAGS += $(C_FLAGS) -std=$(cxx_std)
 
 LDFLAGS ?= -Wl,--gc-sections
 LDFLAGS += $(W_FLAGS) -O$(O) -g
+LDFLAGS += $(addprefix -l,$(libs))
 
 ASFLAGS ?=
 

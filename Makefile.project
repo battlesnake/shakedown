@@ -14,7 +14,8 @@
 
 # defines +=
 # include_dirs +=
-# include +=
+# includes +=
+# libs +=
 
 # c_std =
 # cxx_std =
