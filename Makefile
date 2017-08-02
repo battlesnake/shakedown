@@ -1,6 +1,12 @@
 ### Master makefile
 
-MAKEFLAGS += -rR
+MAKEFLAGS += -rR --output-sync=target
+SHELL = bash
+.SHELLFLAGS = -euo pipefail -c
+
+.DELETE_ON_ERROR:
+.SECONDARY:
+
 W_FLAGS =
 C_FLAGS =
 CFLAGS =
@@ -8,11 +14,25 @@ CXXFLAGS =
 LDFLAGS =
 ASFLAGS =
 
+c_std = gnu11
+cxx_std = c++14
+
+defines =
+include_dirs = $(shell find -type d -name 'include')
+include =
+
 ifeq ($(V),)
 MAKEFLAGS += -s
 endif
 
-include Makefile.project
+# Language of program (used to choose gcc/g++ for linking)
+language ?= c
+
+# Include project makefile if one exists
+-include Makefile.project
+
+# Include metadata makefile if one exists
+-include Makefile.metadata
 
 project_name ?= program
 
@@ -42,40 +62,45 @@ $(shell ( \
 program ?= $(outdir)/$(project_name)
 
 # Inputs
-sources ?= $(patsubst ./%, %, $(shell find -name '*.c' -type f -not -path './$(tmpdir)/*' -not -path './$(outdir)/*'))
+collect_files = $(patsubst ./%.$(strip $1), $(tmpdir)/%.$(strip $2), $(shell find -name '*.$(strip $1)' -type f -not -path './$(tmpdir)/*' -not -path './$(outdir)/*'))
 
 # Objects
-objects ?= $(sources:%.c=$(tmpdir)/%.o)
+objects += $(call collect_files, s, os)
+objects += $(call collect_files, c, o)
+objects += $(call collect_files, cpp, oxx)
+
+-include Makefile.objects
 
 # Toolchain configuration
-language ?= c
-
 CROSS_COMPILE ?=
 
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
+OBJCOPY = $(CROSS_COMPILE)objcopy
+AS = $(CROSS_COMPILE)as
+AR = $(CROSS_COMPILE)ar
+GDB = $(CROSS_COMPILE)gdb
 
 ifeq ($(language),c)
-LD = $(CROSS_COMPILE)gcc
+LD = $(CC)
 endif
 
 ifeq ($(language),c++)
-LD = $(CROSS_COMPILE)g++
+LD = $(CXX)
 endif
-
-OBJCOPY = $(CROSS_COMPILE)objcopy
-
-AS = $(CROSS_COMPILE)as
 
 # Compiler/linker flags
 W_FLAGS ?= -Wall -Wextra -Wno-unused-parameter -Werror
 
 C_FLAGS ?= -ffunction-sections -fdata-sections
 C_FLAGS += $(W_FLAGS) -O$(O) -g -MMD -MP -MF $@.d -c
+C_FLAGS += $(addprefix -I,$(include_dirs))
+C_FLAGS += $(addprefix -i,$(includes))
+C_FLAGS += $(addprefix -D,$(defines))
 
-CFLAGS += $(C_FLAGS) -std=gnu11
+CFLAGS += $(C_FLAGS) -std=$(c_std)
 
-CXXFLAGS += $(C_FLAGS) -std=gnu++14
+CXXFLAGS += $(C_FLAGS) -std=$(cxx_std)
 
 LDFLAGS ?= -Wl,--gc-sections
 LDFLAGS += $(W_FLAGS) -O$(O) -g
@@ -143,6 +168,7 @@ $(filter %.os, $(objects)): $(tmpdir)/%.os: %.s
 	$(call log_action, AS, $@)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-include Makefile.test
+# Include makefile for test runner, if available
+-include Makefile.test
 
 -include $(shell find $(tmpdir) -name '*.d' -type f 2>/dev/null)

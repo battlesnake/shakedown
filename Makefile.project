@@ -9,3 +9,14 @@
 # C_FLAGS =
 # CFLAGS +=
 # CXXFLAGS +=
+
+# language =
+
+# defines +=
+# include_dirs +=
+# include +=
+
+# c_std =
+# cxx_std =
+
+.DEFAULT: all

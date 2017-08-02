@@ -1,0 +1,25 @@
+# Git revision info
+git_commit_id := $(shell git show-ref -s --head HEAD)
+git_commit_abbrev_id := $(shell git show-ref -s8 --head HEAD)
+git_branch := $(shell git rev-parse --abbrev-ref HEAD)
+git_dirty := $(shell echo $$(( $$(git status --porcelain | wc -l) ? 1 : 0 )) )
+
+# Other info
+build_id ?= $(shell uuidgen)
+build_name ?= (none)
+# build_date := $(shell date -uIsec) # Don't screw up PCH, use __DATE__/__TIME__
+build_user ?= $(shell git config --get user.name)
+build_email ?= $(shell git config --get user.email)
+
+# Preprocessor definitions
+defines += build_name="$(build_name)"
+defines += build_date="$(build_date)"
+defines += build_user="$(build_user)"
+defines += build_email="$(build_email)"
+defines += major_version=$(major_version)
+defines += minor_version=$(minor_version)
+defines += patch_version=$(patch_version)
+defines += git_commit="$(git_commit_id)"
+defines += git_commit_abbrev="$(git_commit_abbrev_id)"
+defines += git_branch="$(git_branch)"
+defines += git_dirty="$(git_dirty)" 
