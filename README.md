@@ -31,13 +31,15 @@ Running "make" will:
 
  * link all the objects together to form the program binary (which includes the tests unless eliminated by the linker)
 
- * copy `test/test.o` to `test_main.o`, renaming `test_main` to `main`
+ * copy `test/test.o` to `test_main.o`, renaming symbol `test_main` to `main`
 
  * link all the objects excluding `main.o`, `test/test.o` and instead including `test_main.o`, to produce the test-only binary.
 
- One can then run the default output image `bin/program` which is the software intended to run on the target and which includes the test runner (via `test_shell` in the case of this demo).
+One can then run the default output image `bin/program` which is the software intended to run on the target and which includes the test runner (via `test_shell` in the case of this demo).
 
- One can also run the test-runner image `bin/test` instead, which contains only the test suites.
+One can also run the test-runner image `bin/test` instead, which contains only the test suites.
+
+Since the `objcopy` symbol redefinition will not work if LTO is enabled, the build system simply will not build a test image if LTO is enabled.
 
 ## Convention
 
