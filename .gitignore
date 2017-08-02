@@ -1,5 +1,5 @@
 *.o
 *.d
-bin/
-tmp/
-.build/
+/bin
+/tmp
+/.build

@@ -206,6 +206,17 @@ struct TestSuite *test_find_by_name(const char *name)
 	return NULL;
 }
 
+struct TestSuite *test_find_by_index(int index)
+{
+	for (struct TestSuite **it = test_suites; *it != NULL; ++it) {
+		struct TestSuite *suite = *it;
+		if (index-- == 0) {
+			return suite;
+		}
+	}
+	return NULL;
+}
+
 void test_checklist_print(const char *title)
 {
 	printf("\n");
@@ -234,37 +245,79 @@ void test_checklist_print(const char *title)
 	printf("\n");
 }
 
-void test_checklist_clear(int index)
+bool test_checklist_clear(int index)
 {
 	if (index == -1) {
 		for (int i = 0; test_suites[i] != NULL; ++i) {
 			test_checklist_clear(i);
 		}
-	} else {
-		test_counter_reset(&test_suites[index]->counter);
+		return true;
 	}
+	struct TestSuite *suite = test_find_by_index(index);
+	if (suite) {
+		test_counter_reset(&suite->counter);
+	}
+	return suite != NULL;
 }
 
-void test_checklist_select(int index)
+bool test_checklist_select(int index)
 {
 	if (index == -1) {
 		for (int i = 0; test_suites[i] != NULL; ++i) {
 			test_checklist_select(i);
 		}
-	} else {
-		test_suites[index]->skip = false;
+		return true;
 	}
+	struct TestSuite *suite = test_find_by_index(index);
+	if (suite) {
+		suite->skip = false;
+	}
+	return suite != NULL;
 }
 
-void test_checklist_deselect(int index)
+bool test_checklist_deselect(int index)
 {
 	if (index == -1) {
 		for (int i = 0; test_suites[i] != NULL; ++i) {
 			test_checklist_deselect(i);
 		}
-	} else {
-		test_suites[index]->skip = true;
+		return true;
 	}
+	struct TestSuite *suite = test_find_by_index(index);
+	if (suite) {
+		suite->skip = true;
+	}
+	return suite != NULL;
+}
+
+bool test_checklist_toggle(int index)
+{
+	if (index == -1) {
+		for (int i = 0; test_suites[i] != NULL; ++i) {
+			test_checklist_toggle(i);
+		}
+		return true;
+	}
+	struct TestSuite *suite = test_find_by_index(index);
+	if (suite) {
+		suite->skip = !suite->skip;
+	}
+	return suite != NULL;
+}
+
+bool test_checklist_execute(int index)
+{
+	if (index == -1) {
+		for (int i = 0; test_suites[i] != NULL; ++i) {
+			test_checklist_execute(i);
+		}
+		return true;
+	}
+	struct TestSuite *suite = test_find_by_index(index);
+	if (suite) {
+		test_suite_run(suite);
+	}
+	return suite != NULL;
 }
 
 int test_main(int argc, char *argv[])

@@ -72,6 +72,9 @@ extern struct TestSuite *test_suites[];
 /* Get suite by name (or NULL if not found) */
 struct TestSuite *test_find_by_name(const char *name);
 
+/* Get suite by index (or NULL if out of range) */
+struct TestSuite *test_find_by_index(int index);
+
 /* Run specific test suite */
 void test_suite_run(struct TestSuite *suite);
 
@@ -87,10 +90,14 @@ bool test_suites_run_all(bool stop_on_error);
  * run with another coffee.
  */
 void test_checklist_print(const char *title);
-void test_checklist_clear(int index);
-void test_checklist_select(int index);
-void test_checklist_deselect(int index);
+bool test_checklist_clear(int index);
+bool test_checklist_select(int index);
+bool test_checklist_deselect(int index);
+bool test_checklist_toggle(int index);
+bool test_checklist_execute(int index);
 
+/* Interactive shell that can be called from main program to expose tests */
+void test_shell();
 
 /* Macro to define a test */
 #define TEST_DEFINE(suite_name) \
