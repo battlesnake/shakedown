@@ -320,8 +320,13 @@ bool test_checklist_execute(int index)
 	return suite != NULL;
 }
 
+#ifdef TEST_MAIN_NOARGS
+int test_main()
+#else
 int test_main(int argc, char *argv[])
+#endif
 {
+#ifndef TEST_MAIN_NOARGS
 	/* Select all tests if none were specified; otherwise, deselect all */
 	for (struct TestSuite **it = test_suites; *it != NULL; ++it) {
 		struct TestSuite *suite = *it;
@@ -336,6 +341,7 @@ int test_main(int argc, char *argv[])
 		}
 		suite->skip = false;
 	}
+#endif
 	/* Run all unskipped tests */
 	test_checklist_print("Checklist pre-run");
 	int result = test_suites_run_all(getenv("STOP_ON_ERROR") != NULL) ? 0 : 1;

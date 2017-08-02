@@ -35,9 +35,9 @@ Running "make" will:
 
  * link all the objects excluding `main.o`, `test/test.o` and instead including `test_main.o`, to produce the test-only binary.
 
- One can then run the default output image `bin/program` which is the software intended to run on the target and which includes the test runner (although this demo doesn't provide a way to access it currently).
+ One can then run the default output image `bin/program` which is the software intended to run on the target and which includes the test runner (via `test_shell` in the case of this demo).
 
- One can also run the test-runner image instead `bin/test` which contains only the test suites.
+ One can also run the test-runner image `bin/test` instead, which contains only the test suites.
 
 ## Convention
 

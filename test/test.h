@@ -21,6 +21,13 @@
 /* Define / uncomment to use custom implementation of _test_log* functions */
 // #define TEST_LOG_CUSTOM
 
+/*
+ * Define / uncomment if your "main" function should take no arguments (e.g.
+ * embedded target).  Otherwise, the standard argc/argv will be used for
+ * test_main.
+ */
+// #define TEST_MAIN_NOARGS
+
 /* Define file where we log to */
 #if ! defined TEST_LOG_TARGET
 #define TEST_LOG_TARGET stderr

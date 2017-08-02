@@ -26,6 +26,7 @@ outdir ?= bin
 # Temporary directory
 tmpdir ?= tmp
 
+# Create directories as needed, update symlinks
 $(shell ( \
 	mkdir -p -- $(builddir)/$(outdir); \
 	mkdir -p -- $(builddir)/$(tmpdir); \
