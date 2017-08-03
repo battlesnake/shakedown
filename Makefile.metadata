@@ -5,24 +5,26 @@ git_branch := $(shell git rev-parse --abbrev-ref HEAD)
 git_dirty := $(shell echo $$(( $$(git status --porcelain | wc -l) ? 1 : 0 )) )
 
 # Other info
-build_id ?= $(shell uuidgen)
+build_uuid ?= $(shell uuidgen)
 build_name ?= (none)
 # build_date := $(shell date -uIsec) # Don't screw up PCH, use __DATE__/__TIME__
-spacebound =
-space = $(spacebound) $(spacebound)
-nbsp =  
 build_user ?= $(subst $(space),$(nbsp),$(shell git config --get user.name))
-build_email ?= $(shell git config --get user.email)
+build_email ?= $(subst $(space),$(nbsp),$(shell git config --get user.email))
+
+major_version ?= ?
+minor_version ?= ?
+patch_version ?= ?
 
 # Preprocessor definitions
-defines += build_name="$(build_name)"
-defines += build_date="$(build_date)"
-defines += build_user="$(build_user)"
-defines += build_email="$(build_email)"
-defines += major_version=$(major_version)
-defines += minor_version=$(minor_version)
-defines += patch_version=$(patch_version)
-defines += git_commit="$(git_commit_id)"
-defines += git_commit_abbrev="$(git_commit_abbrev_id)"
-defines += git_branch="$(git_branch)"
-defines += git_dirty="$(git_dirty)"
+defines += BUILD_NAME="$(build_name)"
+defines += BUILD_DATE="$(build_date)"
+defines += BUILD_UUID="$(build_uuid)"
+defines += BUILD_USER="$(build_user)"
+defines += BUILD_EMAIL="$(build_email)"
+defines += MAJOR_VERSION=$(major_version)
+defines += MINOR_VERSION=$(minor_version)
+defines += PATCH_VERSION=$(patch_version)
+defines += GIT_COMMIT="$(git_commit_id)"
+defines += GIT_COMMIT_ABBREV="$(git_commit_abbrev_id)"
+defines += GIT_BRANCH="$(git_branch)"
+defines += GIT_DIRTY="$(git_dirty)"

@@ -16,6 +16,11 @@ MAKEFLAGS += -rR --output-sync=$(sync_mode)
 SHELL = bash
 .SHELLFLAGS = -euo pipefail -c
 
+# Space and non-breaking space
+spacebound =
+space = $(spacebound) $(spacebound)
+nbsp =  
+
 # -g or -s
 strip_debug = -g
 
@@ -161,7 +166,7 @@ $(call log_var, GDB)
 c_flags += $(w_flags) -MMD -MP -MF $@.d -c
 c_flags += $(addprefix -I,$(include_dirs))
 c_flags += $(addprefix -i,$(includes))
-c_flags += $(addprefix -D,$(defines))
+c_flags += $(subst $(nbsp),$(space),$(addprefix -D,$(defines)))
 
 cflags += $(c_flags) -std=$(c_std)
 

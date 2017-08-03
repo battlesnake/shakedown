@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <metadata.h>
 #include "test/test.h"
 
 #if defined TEST_MAIN_NOARGS
@@ -10,6 +11,7 @@ int main(int argc, char *argv[])
 	(void) argc;
 	(void) argv;
 #endif
+	print_build_configuration();
 	printf("Dummy program, run by default when not invoking the test runner\n");
 	printf("\n");
 	printf("Contains demo shell to show how to provide access to the tests from the main program\n");
