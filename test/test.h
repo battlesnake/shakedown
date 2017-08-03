@@ -178,9 +178,9 @@ void _test_fail(const char *file, const int line, const char *func, const char *
 	_test_error(__FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
 
 /* Basic logging functions */
-void _test_log(const char *file, const int line, const char *func, const char *format, ...);
+void _test_log(const char *file, const int line, const char *func, const char *format, ...) __attribute__((format(printf, 4, 5)));
 void _test_log_nl(const char *file, const int line, const char *func);
-void _test_error(const char *file, const int line, const char *func, const char *format, ...);
+void _test_error(const char *file, const int line, const char *func, const char *format, ...) __attribute__((format(printf, 4, 5)));
 
 /* Log-prefix format strings */
 #ifndef TEST_LOG_FORMAT_STR

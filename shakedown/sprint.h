@@ -17,7 +17,7 @@ struct sprint_buf
 	sprint_buf_init(name, _##name##_len);
 
 void sprint_buf_init(struct sprint_buf *spb, size_t capacity);
-void sprint_buf(struct sprint_buf *spb, const char *format, ...);
+void sprint_buf(struct sprint_buf *spb, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void vsprint_buf(struct sprint_buf *spb, const char *format, va_list args);
 
 void sprint_buf_nchar(struct sprint_buf *spb, size_t n, char c);
