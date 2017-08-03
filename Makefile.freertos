@@ -1,0 +1,16 @@
+use_freertos = y
+
+freertos_heap ?= heap_4
+
+# Explicitly specify which files we want from FreeRTOS
+source_exclude += FreeRTOS
+
+objects-freertos =
+objects-freertos += list.o
+objects-freertos += queue.o
+objects-freertos += tasks.o
+objects-freertos += event_groups.o
+objects-freertos += timers.o
+objects-freertos += portable/MemMang/$(freertos_heap).o
+
+objects += $(addprefix $(tmpdir)/FreeRTOS/,$(objects-freertos))

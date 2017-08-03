@@ -1,0 +1,119 @@
+include Makefile.arm-bare
+
+clock_rate ?= 8000000
+
+defines += USE_STDPERIPH_DRIVER
+defines += STM32F4XX
+defines += STM32F40_41xxx
+defines += HSE_VALUE=$(clock_rate)
+defines += __FPU_PRESENT=1
+defines += __FPU_USED=1
+defines += ARM_MATH_CM4
+
+flash_addr = 0x8000000
+
+mach_flags += -mcpu=cortex-m4
+
+c_flags += $(mach_flags)
+
+ldflags += $(mach_flags)
+ldflags += -u _scanf_float -u _printf_float -fno-exceptions
+ldflags += -Wl,-T$(link_script)
+
+libs += c gcc
+
+has_stlink := $(shell which st-util &>/dev/null && echo 'y' || echo 'n')
+has_openocd := $(shell which openocd &>/dev/null && echo 'y' || echo 'n')
+
+use_stlink ?= $(has_stlink)
+use_openocd ?= $(has_openocd)
+
+use_semihosting ?= $(use_openocd)
+
+ifeq ($(use_semihosting),y)
+libs += rdimon
+ldflags += --specs=nano.specs --specs=rdimon.specs
+else
+ldflags += --specs=nosys.specs
+endif
+
+$(call log_var, has_stlink)
+$(call log_var, has_openocd)
+
+$(call log_var, use_stlink)
+$(call log_var, use_openocd)
+$(call log_var, use_semihosting)
+
+stlink_version ?= 2
+
+ifeq ($(use_stlink),y)
+include Makefile.stlink
+endif
+
+ifeq ($(use_openocd),y)
+openocd_scripts += /usr/share/openocd/scripts/interface/stlink-v$(stlink_version).cfg
+openocd_scripts += /usr/share/openocd/scripts/target/stm32f4x.cfg
+include Makefile.openocd
+endif
+
+ifeq ($(use_openocd),y)
+.PHONY: flash
+flash: flash-openocd
+
+.PHONY: debug
+debug: debug-openocd
+
+.PHONY: debugserver
+debugserver: debugserver-openocd
+endif
+
+ifeq ($(use_openocd)$(use_stlink),ny)
+.PHONY: flash
+flash: flash-stlink
+
+.PHONY: debug
+debug: debug-stlink
+
+.PHONY: debugserver
+debugserver: debugserver-stlink
+endif
+
+ifeq ($(use_openocd)$(use_stlink),nn)
+.PHONY: flash
+flash: flash-stlink
+	$(call log_error, No flash tool available)
+
+.PHONY: debug
+debug: debug-stlink
+	$(call log_error, No debug tool available)
+
+.PHONY: debugserver
+debugserver: debugserver-stlink
+	$(call log_error, No debugserver tool available)
+endif
+
+ifeq ($(use_freertos),y)
+# Explicitly specify which files we want from FreeRTOS
+source_exclude += FreeRTOS
+
+include_dirs += FreeRTOS/portable/GCC/ARM_CM4F
+
+objects-freertos += portable/GCC/ARM_CM4F/port.o
+endif
+
+# Explicitly specify which files we want from platform
+source_exclude += platform
+
+objects-platform =
+objects-platform += startup_stm32f4xx.os
+objects-platform += stm32f4xx_it.o
+objects-platform += system_stm32f4xx.o
+objects-platform += std-periph/misc.o
+objects-platform += std-periph/stm32f4xx_gpio.o
+objects-platform += std-periph/stm32f4xx_usart.o
+objects-platform += std-periph/stm32f4xx_rcc.o
+ifeq ($(use_semihosting),n)
+objects-platform += syscalls.o
+endif
+
+objects += $(addprefix $(tmpdir)/platform/,$(objects-platform))

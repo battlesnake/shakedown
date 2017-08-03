@@ -1,0 +1,24 @@
+cross_compile = arm-none-eabi-
+
+program_elf = $(program)
+program_map = $(program).map
+program_bin = $(program).bin
+program_hex = $(program).hex
+
+$(call log_var, program_elf)
+$(call log_var, program_map)
+$(call log_var, program_bin)
+$(call log_var, program_hex)
+
+ldflags += -Wl,-Map,$(program_map)
+
+build: $(program_hex) $(program_bin)
+
+$(program_hex): %.hex: %
+	$(call log_action, HEX, $@)
+	$(OBJCOPY) -O ihex $< $@
+
+$(program_bin): %.bin: %
+	$(call log_action, BIN, $@)
+	$(OBJCOPY) -O binary $< $@
+

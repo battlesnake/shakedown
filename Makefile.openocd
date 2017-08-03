@@ -1,0 +1,24 @@
+ifneq ($(filter flash% debug%, $(MAKECMDGOALS)),)
+sync_mode = none
+endif
+
+.PHONY: flash-openocd
+flash-openocd: flash-stlink
+
+.PHONY: debug-openocd
+debug-openocd: $(program_elf)
+	$(call log_action, GDB, $<)
+	if ! pidof openocd &>/dev/null; then \
+		$(call log_error, openocd debugserver is not running); \
+	fi
+ifeq ($(use_semihosting),y)
+	$(eval gdb_semi = monitor arm semihosting enable)
+else
+	$(eval gdb_semi = print "Semihosting not enabled/available")
+endif
+	$(GDB) -q -se $< -ex 'tar ext :3333' -ex '$(gdb_semi)' -ex 'monitor reset halt' -ex 'monitor flash protect 0 0 11 off' -ex 'monitor flash write_image erase $<' -ex 'monitor reset run' -ex 'monitor reset halt' -ex 'b main' -ex 'c'
+
+.PHONY: debugserver-openocd
+debugserver-openocd:
+	$(call log_action, DS, openocd)
+	openocd $(addprefix -f , $(openocd_scripts)) -d1 -c 'init' -c 'reset halt'

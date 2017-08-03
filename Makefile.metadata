@@ -8,7 +8,10 @@ git_dirty := $(shell echo $$(( $$(git status --porcelain | wc -l) ? 1 : 0 )) )
 build_id ?= $(shell uuidgen)
 build_name ?= (none)
 # build_date := $(shell date -uIsec) # Don't screw up PCH, use __DATE__/__TIME__
-build_user ?= $(shell git config --get user.name)
+spacebound =
+space = $(spacebound) $(spacebound)
+nbsp =  
+build_user ?= $(subst $(space),$(nbsp),$(shell git config --get user.name))
 build_email ?= $(shell git config --get user.email)
 
 # Preprocessor definitions

@@ -1,29 +1,48 @@
 ### Master makefile
 
-MAKEFLAGS += -rR --output-sync=target
-SHELL = bash
-.SHELLFLAGS = -euo pipefail -c
+# Some variables (e.g. libs, cflags) are lists that can be appended (+=),
+# others are plain strings (strip_debug, sync_mode) that can be reassibned (=)
+# as needed.
 
+# Included makefiles might override this with "line" or "none"
+sync_mode = target
+
+# Configure make
+MAKEFLAGS += -rR --output-sync=$(sync_mode)
 .DELETE_ON_ERROR:
 .SECONDARY:
 
+# Configure shell
+SHELL = bash
+.SHELLFLAGS = -euo pipefail -c
+
+# -g or -s
+strip_debug = -g
+
+# Warning flags
 w_flags = -Wall -Wextra -Wno-unused-parameter -Werror
-c_flags = -ffunction-sections -fdata-sections
-ldflags = -Wl,--gc-sections
+
+# Common to both cflags and cxxflags
+c_flags = -ffunction-sections -fdata-sections -O$(o) $(strip_debug)
+# Linker flags
+ldflags = -Wl,--gc-sections -O$(o) $(strip_debug)
+# Assembler flags
 asflags =
+# Specific to either cflags or cxxflags
 cflags =
 cxxflags =
 
-
+# C / C++ standards to use
 c_std = gnu11
-cxx_std = c++14
+cxx_std = gnu++14
 
+# Preprocessor definitions
 defines =
+# Includes
 include_dirs = $(shell find -type d -name 'include')
 includes =
+# Libraries to link against
 libs =
-
-source_exclude =
 
 ifeq ($(V),)
 MAKEFLAGS += -s
@@ -32,18 +51,48 @@ endif
 # Language of program (used to choose gcc/g++ for linking)
 language ?= c
 
+# Name of program (used to generate output filename(s))
+project_name = program
+
+# Optimisiation level
+o := $(firstword $(o) $(O) g)
+
+# Build directory
+build_base = .build
+build_profile = $(o)
+build_dir = $(build_base)/$(build_profile)
+
+# Output directory
+outdir = bin
+
+# Temporary directory
+tmpdir = tmp
+
 # Useful logging functions
+shell_quote = '$(subst ','\\'',$(strip $(1)))'
+
 define log_action
-	@printf "  $$(tput bold)[%s]$$(tput sgr0)\t %s\n" "$(strip $(1))" "$(strip $(2))"
+	@printf "  $$(tput bold)[%s]$$(tput sgr0)\t %s\n" $(call shell_quote, $(1)) $(call shell_quote, $(2))
+endef
+
+define log_error
+	printf "      \t $$(tput bold)$$(tput setaf 1)%s$$(tput sgr0)\n" $(call shell_quote, $(1)); false
 endef
 
 define log_info
-$(shell [ "$(V)" ] && printf " $$(tput bold)-$$(tput sgr0) $$(tput sitm)%s$$(tput sgr0)\n" "$(strip $(1))" >&2)
+$(shell [ "$(V)" ] && printf " $$(tput bold)-$$(tput sgr0) $$(tput sitm)%s$$(tput sgr0)\n" $(call shell_quote, $(1)) >&2)
 endef
 
 define log_var
 $(call log_info, $(1) = $($(strip $1)))
 endef
+
+# Output filenames
+program = $(outdir)/$(project_name)
+
+# Source file collection parameters
+source_root = .
+source_exclude = $(tmpdir) $(outdir)
 
 # Include project makefile if one exists
 -include Makefile.project
@@ -51,26 +100,10 @@ endef
 # Include metadata makefile if one exists
 -include Makefile.metadata
 
-project_name ?= program
-
-# Optimisiation level
-o := $(firstword $(o) $(O) g)
-
 $(call log_var, o)
-
-# Build directory
-build_base ?= .build
-build_profile ?= $(o)
-build_dir ?= $(build_base)/$(build_profile)
 
 $(call log_var, build_profile)
 $(call log_var, build_dir)
-
-# Output directory
-outdir ?= bin
-
-# Temporary directory
-tmpdir ?= tmp
 
 # Create directories as needed, update symlinks
 $(shell ( \
@@ -81,12 +114,7 @@ $(shell ( \
 	ln -sf $(build_dir)/$(tmpdir) $(tmpdir); \
 ) >&2 )
 
-# Output filenames
-program ?= $(outdir)/$(project_name)
-
-# Inputs
-source_root ?= .
-source_exclude += $(tmpdir) $(outdir)
+# Function to make list of source files
 collect_files = $(patsubst $(source_root)/%.$(strip $1), $(tmpdir)/%.$(strip $2), $(shell find $(source_root) -name '*.$(strip $1)' -type f $(source_exclude:%=-not -path './%/*' )))
 
 $(call log_var, program)
@@ -99,8 +127,6 @@ objects += $(call collect_files, c, o)
 objects += $(call collect_files, cpp, oxx)
 
 $(call log_var, objects)
-
--include Makefile.objects
 
 # Toolchain configuration
 CROSS_COMPILE ?= $(cross_compile)
@@ -120,8 +146,19 @@ ifeq ($(language),c++)
 LD = $(CXX)
 endif
 
+$(call log_var, CROSS_COMPILE)
+$(call log_var, AS)
+$(call log_var, CC)
+$(call log_var, CXX)
+$(call log_var, AR)
+$(call log_var, LD)
+$(call log_var, OBJCOPY)
+$(call log_var, GDB)
+
+-include Makefile.objects
+
 # Compiler/linker flags
-c_flags += $(w_flags) -O$(o) -g -MMD -MP -MF $@.d -c
+c_flags += $(w_flags) -MMD -MP -MF $@.d -c
 c_flags += $(addprefix -I,$(include_dirs))
 c_flags += $(addprefix -i,$(includes))
 c_flags += $(addprefix -D,$(defines))
@@ -130,7 +167,7 @@ cflags += $(c_flags) -std=$(c_std)
 
 cxxflags += $(c_flags) -std=$(cxx_std)
 
-ldflags += $(w_flags) -O$(o) -g
+ldflags += $(w_flags)
 ldflags += $(addprefix -l,$(libs))
 
 # Link-time optimisation enabled if optimisation level is above "debug"
@@ -145,6 +182,10 @@ ifeq ($(use_lto),y)
 c_flags += -flto
 ldflags += -flto
 endif
+
+$(call log_var, cflags)
+$(call log_var, cxxflags)
+$(call log_var, ldflags)
 
 .PHONY: all
 all: $(program)

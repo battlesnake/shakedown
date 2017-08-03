@@ -1,0 +1,21 @@
+ifneq ($(filter flash% debug%, $(MAKECMDGOALS)),)
+sync_mode = none
+endif
+
+.PHONY: flash-stlink
+flash-stlink: $(program_bin)
+	$(call log_action, FLASH, $<)
+	st-flash write $< $(flash_addr)
+
+.PHONY: debug-stlink
+debug-stlink: $(program_elf)
+	$(call log_action, GDB, $<)
+	if ! pidof st-util &>/dev/null; then \
+		$(call log_error, st-link debugserver is not running); \
+	fi
+	$(GDB) -q -se $< -ex 'tar ext :4242' -ex 'load' -ex 'b main' -ex 'c'
+
+.PHONY: debugserver-stlink
+debugserver-stlink:
+	$(call log_action, DS, stlink)
+	st-util
