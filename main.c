@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <metadata.h>
-#include "test/test.h"
+#include <test.h>
 
 #if defined TEST_MAIN_NOARGS
 int main()
