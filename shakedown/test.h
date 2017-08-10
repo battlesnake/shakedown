@@ -14,7 +14,8 @@
 #define TEST_LIST_XMACRO \
 	X(integer_add) \
 	X(integer_multiply) \
-
+	X(adc_multichannel) \
+	X(spi_gyro)
 /* Define / uncomment to disable ANSI escape codes in output */
 // #define TEST_NO_ANSI_TERM
 

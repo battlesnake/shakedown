@@ -114,7 +114,7 @@ $(call log_var, build_dir)
 $(shell ( \
 	mkdir -p -- $(build_dir)/$(outdir); \
 	mkdir -p -- $(build_dir)/$(tmpdir); \
-	rm -f $(outdir) $(tmpdir); \
+	rm -rf $(outdir) $(tmpdir); \
 	ln -sf $(build_dir)/$(outdir) $(outdir); \
 	ln -sf $(build_dir)/$(tmpdir) $(tmpdir); \
 ) >&2 )
