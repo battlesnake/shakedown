@@ -78,9 +78,9 @@ Status I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 	I2C_HDLStruct.I2C_Ack = I2C_Ack_Enable;
 	I2C_HDLStruct.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
 	I2C_HDLStruct.I2C_Mode = I2C_Mode_I2C;
-	I2C_HDLStruct.I2C_ClockSpeed = I2C_HAL->clockSpeed;
-	if (I2C_HAL->dutyCyle == dutyCycle_2) {
-		I2C_HDLStruct.>I2C_DutyCycle = I2C_DutyCycle_2;
+	I2C_HDLStruct.I2C_ClockSpeed = I2C_HALStruct->clockSpeed;
+	if (I2C_HALStruct->dutyCycle == dutyCycle_2) {
+		I2C_HDLStruct.I2C_DutyCycle = I2C_DutyCycle_2;
 	} else {
 		I2C_HDLStruct.I2C_DutyCycle = I2C_DutyCycle_16_9;
 	}	
@@ -98,7 +98,7 @@ Status I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 /* 
  *  Read in polling mode
  */
-Status I2C_HAL_Read(I2C_HalType* I2C_HALStruct, uint8_t *buf, uint32_t nbyte, uint8_t slaveAddres)
+Status I2C_HAL_Read(I2C_HALType* I2C_HALStruct, uint8_t *buf, uint32_t nbyte, uint8_t slaveAddress)
 {
 	__IO uint32_t Timeout = 0;
 	I2C_TypeDef* I2Cx;
@@ -122,7 +122,7 @@ Status I2C_HAL_Read(I2C_HalType* I2C_HALStruct, uint8_t *buf, uint32_t nbyte, ui
 	Timed(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT));
 
 	// Send Address
-	I2C_Send7bitAddress(I2Cx, slaveAddres, I2C_Direction_Receiver);
+	I2C_Send7bitAddress(I2Cx, slaveAddress, I2C_Direction_Receiver);
 
 	// EV6
   	Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_ADDR));
@@ -201,7 +201,7 @@ Status I2C_HAL_Read(I2C_HalType* I2C_HALStruct, uint8_t *buf, uint32_t nbyte, ui
 /*
  * Write in polling mode
  */
-Status I2C_HAL_Write(I2C_HALType* I2C_HALStruct, const uint8_t* buf,  uint32_t nbyte, uint8_t slaveAddr)
+Status I2C_HAL_Write(I2C_HALType* I2C_HALStruct, const uint8_t* buf,  uint32_t nbyte, uint8_t slaveAddress)
 {
 	__IO uint32_t Timeout = 0;
 	I2C_TypeDef* I2Cx;
@@ -218,7 +218,7 @@ Status I2C_HAL_Write(I2C_HALType* I2C_HALStruct, const uint8_t* buf,  uint32_t n
 		Timed(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT));
 
 		// Send Address  EV5
-		I2C_Send7bitAddress(I2Cx, slaveAddres, I2C_Direction_Transmitter);
+		I2C_Send7bitAddress(I2Cx, slaveAddress, I2C_Direction_Transmitter);
 		Timed(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
 
 		// EV6
@@ -233,7 +233,7 @@ Status I2C_HAL_Write(I2C_HALType* I2C_HALStruct, const uint8_t* buf,  uint32_t n
 
 		Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF));  
 		I2C_GenerateSTOP(I2Cx, ENABLE);
-		Timed(I2C_GetFlagStatus(I2C1, I2C_FLAG_STOPF));
+		Timed(I2C_GetFlagStatus(I2Cx, I2C_FLAG_STOPF));
 	}
 	
 	return Success;
@@ -246,4 +246,6 @@ Status I2C_HAL_Write(I2C_HALType* I2C_HALStruct, const uint8_t* buf,  uint32_t n
 Status I2C_HAL_DeInit(I2C_HALType *I2C_HALStruct)
 {
         I2C_DeInit(I2C_HALStruct->I2Cx);
+
+	return Success;
 }
