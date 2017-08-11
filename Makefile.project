@@ -13,11 +13,16 @@
 # language =
 
 # defines +=
-# include_dirs +=
+include_dirs += config
 # includes +=
-# libs +=
+libs += m
 
 # c_std =
 # cxx_std =
 
-.DEFAULT_GOAL := all
+# Disable LTO entirely for now as some ASM files fail rang checks if it is enabled
+use_lto = n
+
+.DEFAULT: all
+
+include Makefile.obdh

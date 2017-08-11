@@ -5,51 +5,47 @@
 #include "i2c_hal.h"
 
 /*
- * Initialization of the HAL I2C   
+ * Initialization of the HAL structure
  */
-Status I2C_HAL_InitStruct(I2C_HALType *I2C_HAL, uint8_t id)
+Status I2C_HAL_InitStruct(I2C_HALType *I2C_HALStruct, uint8_t id)
 {
 	// Set the I2C id number
-	I2C_HAL->id = id;
+	I2C_HALStruct->id = id;
         
 	// Initialize the I2C HDL reference
-	if (id > 0 && id <= maxId) {
-		I2C_HAL->I2Cx = I2Cs[id-1];
+	if (id > 0 && id <= I2C_MAX_ID) {
+		I2C_HALStruct->I2Cx = I2Cs[id-1];
 	} else {
-		return Error;
+		//	return Error;
 	}
 
 	// Default clock speed set to 5 KHz
-	I2C_HAL->clockSpeed = 5000;
+	I2C_HALStruct->clockSpeed = 5000;
 
 	// Default duty cycle
-	I2C_HAL->dutyCycle = dutyCycle_2;
+	I2C_HALStruct->dutyCycle = dutyCycle_2;
 
-	return Success;
+       	return Success;
 }
 
 /*
- * Open the corresponding I2C interface depending on the HAL structure parameters
+ * Start the corresponding I2C interface depending on the HAL structure parameters
  */
-Status I2C_HAL_Init(I2C_HALType *I2C_HAL)
+Status I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 {
-	I2C_InitTypeDef *I2C_InitStruct;
-	GPIO_InitTypeDef GPIO_InitStruct;
+	I2C_InitTypeDef I2C_HDLStruct;
+	GPIO_InitTypeDef GPIO_HDLStruct;
 
-	if (I2C_HAL->id > maxId || \
-	    I2C_HAL->clockSpeed > maxClockSpeed || \
-	    !IS_I2C_ALL_PERIPH(I2C_HAL->I2Cx) || \
-	    !I2C_HAL_IS_DUTY_CYCLE(I2C_HAL->dutyCycle)) {
+	if (I2C_HALStruct->id > I2C_MAX_ID || \
+	    I2C_HALStruct->id == 0 || \
+	    I2C_HALStruct->clockSpeed > I2C_MAX_CLOCK_SPEED || \
+	    !IS_I2C_ALL_PERIPH(I2C_HALStruct->I2Cx) || \
+	    !I2C_HAL_IS_DUTY_CYCLE(I2C_HALStruct->dutyCycle)) {
 		return Error;
 	}
 
-	// Get reference to the HDL structure
-	I2C_InitStruct = &I2C_HAL->I2C_HDL;
-
 	// Enable clocks and GPIOs according to the I2C id
-	// TODO: Move the platform specific GPIO ids and pins somewhere else
-	
-	if (I2C_HAL->id == 1) {
+	if (I2C_HALStruct->id == 1) {
 		/* Enable the clock for the GPIOs */
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 
@@ -58,42 +54,41 @@ Status I2C_HAL_Init(I2C_HALType *I2C_HAL)
 		GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF_I2C1);
 
 		/* Configure the SPI chip select and reset pins */
-		GPIO_StructInit(&GPIO_InitStruct);
-		GPIO_InitStruct.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
-		GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;	
-		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
-		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
-		GPIO_Init(GPIOB, &GPIO_InitStruct);
+		GPIO_StructInit(&GPIO_HDLStruct);
+		GPIO_HDLStruct.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
+		GPIO_HDLStruct.GPIO_OType = GPIO_OType_OD;	
+		GPIO_HDLStruct.GPIO_Speed = GPIO_Speed_50MHz;
+		GPIO_HDLStruct.GPIO_Mode = GPIO_Mode_AF;
+		GPIO_HDLStruct.GPIO_PuPd = GPIO_PuPd_UP;
+		GPIO_Init(GPIOB, &GPIO_HDLStruct);
 	
 		/* Enable the clock for the I2C */
 		RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
-	} else if (I2C_HAL->id == 2) {
+	} else if (I2C_HALStruct->id == 2) {
 		// TODO
 	} else {
 		// TODO
 	}
 
 	// Initialize the HDL structure with default values
-	I2C_StructInit(I2C_InitStruct);
+	I2C_StructInit(&I2C_HDLStruct);
 
 	// Change some of the parameters
-	I2C_InitStruct->I2C_OwnAddress1 = 0x0;
-	I2C_InitStruct->I2C_Ack = I2C_Ack_Enable;
-	I2C_InitStruct->I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
-	I2C_InitStruct->I2C_Mode = I2C_Mode_I2C;
-	I2C_InitStruct->I2C_ClockSpeed = I2C_HAL->clockSpeed;
+	I2C_HDLStruct.I2C_OwnAddress1 = 0x0;
+	I2C_HDLStruct.I2C_Ack = I2C_Ack_Enable;
+	I2C_HDLStruct.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
+	I2C_HDLStruct.I2C_Mode = I2C_Mode_I2C;
+	I2C_HDLStruct.I2C_ClockSpeed = I2C_HAL->clockSpeed;
 	if (I2C_HAL->dutyCyle == dutyCycle_2) {
-		I2C_InitStruct->I2C_DutyCycle = I2C_DutyCycle_2;
+		I2C_HDLStruct.>I2C_DutyCycle = I2C_DutyCycle_2;
 	} else {
-		I2C_InitStruct->I2C_DutyCycle = I2C_DutyCycle_16_9;
-	}
-	
-	I2C_Init(I2C_HAL->I2Cx, I2C_InitStruct);
+		I2C_HDLStruct.I2C_DutyCycle = I2C_DutyCycle_16_9;
+	}	
+	I2C_Init(I2C_HALStruct->I2Cx, &I2C_HDLStruct);
 
-       	I2C_AcknowledgeConfig(I2C_HAL->I2Cx, ENABLE);
+       	I2C_AcknowledgeConfig(I2C_HALStruct->I2Cx, ENABLE);
 
-	I2C_Cmd(I2C_HAL->I2Cx, ENABLE);
+	I2C_Cmd(I2C_HALStruct->I2Cx, ENABLE);
 
 	// Check the enabled bit and return error if not enabled
 	 
@@ -103,176 +98,152 @@ Status I2C_HAL_Init(I2C_HALType *I2C_HAL)
 /* 
  *  Read in polling mode
  */
-Status I2C_HAL_Read(I2C_TypeDef* I2Cx, uint8_t *buf, uint32_t nbyte, uint8_t slaveAddr)
+Status I2C_HAL_Read(I2C_HalType* I2C_HALStruct, uint8_t *buf, uint32_t nbyte, uint8_t slaveAddres)
 {
-  __IO uint32_t Timeout = 0;
+	__IO uint32_t Timeout = 0;
+	I2C_TypeDef* I2Cx;
 
-  //    I2Cx->CR2 |= I2C_IT_ERR;  interrupts for errors 
+	I2Cx = I2C_HALStruct->I2Cx;
 
-  if (!nbyte)
-    return Success;
+	// I2Cx->CR2 |= I2C_IT_ERR;  interrupts for errors
+	
+	if (!nbyte)
+		return Success;
 
-  // Wait for idle I2C interface
+	// Wait for idle I2C interface
+	Timed(I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY));
 
-  Timed(I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY));
+	// Enable Acknowledgement, clear POS flag
+	I2C_AcknowledgeConfig(I2Cx, ENABLE);
+	I2C_NACKPositionConfig(I2Cx, I2C_NACKPosition_Current);
 
-  // Enable Acknowledgement, clear POS flag
+	// Intiate Start Sequence (wait for EV5
+	I2C_GenerateSTART(I2Cx, ENABLE);
+	Timed(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT));
 
-  I2C_AcknowledgeConfig(I2Cx, ENABLE);
-  I2C_NACKPositionConfig(I2Cx, I2C_NACKPosition_Current);
+	// Send Address
+	I2C_Send7bitAddress(I2Cx, slaveAddres, I2C_Direction_Receiver);
 
-  // Intiate Start Sequence (wait for EV5
+	// EV6
+  	Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_ADDR));
 
-  I2C_GenerateSTART(I2Cx, ENABLE);
-  Timed(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT));
+	if (nbyte == 1) {
+		// Clear Ack bit      
+		I2C_AcknowledgeConfig(I2Cx, DISABLE);
 
-  // Send Address
+		// EV6_1 -- must be atomic -- Clear ADDR, generate STOP
+		__disable_irq();
+		(void) I2Cx->SR2;                           
+		I2C_GenerateSTOP(I2Cx,ENABLE);      
+		__enable_irq();
 
-  I2C_Send7bitAddress(I2Cx, SlaveAddress, I2C_Direction_Receiver);
+		// Receive data   EV7
+		Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_RXNE));
+		*buf++ = I2C_ReceiveData(I2Cx);
+	}
+	else if (nbyte == 2) {
+		// Set POS flag
+		I2C_NACKPositionConfig(I2Cx, I2C_NACKPosition_Next);
 
-  // EV6
-  
-  Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_ADDR));
+		// EV6_1 -- must be atomic and in this order
+		__disable_irq();
+		(void) I2Cx->SR2;                           // Clear ADDR flag
+		I2C_AcknowledgeConfig(I2Cx, DISABLE);       // Clear Ack bit
+		__enable_irq();
 
-  if (nbyte == 1)
-    {
+		// EV7_3  -- Wait for BTF, program stop, read data twice
+		Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF));
 
-      // Clear Ack bit      
+		__disable_irq();
+		I2C_GenerateSTOP(I2Cx,ENABLE);
+		*buf++ = I2Cx->DR;
+		__enable_irq();
 
-      I2C_AcknowledgeConfig(I2Cx, DISABLE);       
+		*buf++ = I2Cx->DR;
 
-      // EV6_1 -- must be atomic -- Clear ADDR, generate STOP
+	} else {
+		(void) I2Cx->SR2;                           // Clear ADDR flag
+		while (nbyte-- != 3) {
+			// EV7 -- cannot guarantee 1 transfer completion time, wait for BTF 
+			//        instead of RXNE
+			Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF)); 
+			*buf++ = I2C_ReceiveData(I2Cx);
+		}
 
-      __disable_irq();
-      (void) I2Cx->SR2;                           
-      I2C_GenerateSTOP(I2Cx,ENABLE);      
-      __enable_irq();
+		Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF));  
 
-      // Receive data   EV7
+		// EV7_2 -- Figure 1 has an error, doesn't read N-2 !
+		I2C_AcknowledgeConfig(I2Cx, DISABLE);       // clear ack bit
 
-      Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_RXNE));
-      *buf++ = I2C_ReceiveData(I2Cx);
+		__disable_irq();
+		*buf++ = I2C_ReceiveData(I2Cx);             // receive byte N-2
+		I2C_GenerateSTOP(I2Cx,ENABLE);              // program stop
+		__enable_irq();
+		*buf++ = I2C_ReceiveData(I2Cx);             // receive byte N-1
 
-    }
-  else if (nbyte == 2)
-    {
-      // Set POS flag
+		// wait for byte N
+		Timed(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED)); 
+		*buf++ = I2C_ReceiveData(I2Cx);
 
-      I2C_NACKPositionConfig(I2Cx, I2C_NACKPosition_Next);
-
-      // EV6_1 -- must be atomic and in this order
-
-      __disable_irq();
-      (void) I2Cx->SR2;                           // Clear ADDR flag
-      I2C_AcknowledgeConfig(I2Cx, DISABLE);       // Clear Ack bit
-      __enable_irq();
-
-      // EV7_3  -- Wait for BTF, program stop, read data twice
-
-      Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF));
-
-      __disable_irq();
-      I2C_GenerateSTOP(I2Cx,ENABLE);
-      *buf++ = I2Cx->DR;
-      __enable_irq();
-
-      *buf++ = I2Cx->DR;
-
-    }
-  else 
-    {
-      (void) I2Cx->SR2;                           // Clear ADDR flag
-      while (nbyte-- != 3)
-	{
-	  // EV7 -- cannot guarantee 1 transfer completion time, wait for BTF 
-          //        instead of RXNE
-
-	  Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF)); 
-	  *buf++ = I2C_ReceiveData(I2Cx);
+		nbyte = 0;
 	}
 
-      Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF));  
-
-      // EV7_2 -- Figure 1 has an error, doesn't read N-2 !
-
-      I2C_AcknowledgeConfig(I2Cx, DISABLE);           // clear ack bit
-
-      __disable_irq();
-      *buf++ = I2C_ReceiveData(I2Cx);             // receive byte N-2
-      I2C_GenerateSTOP(I2Cx,ENABLE);                  // program stop
-      __enable_irq();
-
-      *buf++ = I2C_ReceiveData(I2Cx);             // receive byte N-1
-
-      // wait for byte N
-
-      Timed(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED)); 
-      *buf++ = I2C_ReceiveData(I2Cx);
-
-      nbyte = 0;
-
-    }
-
-  // Wait for stop
-
-  Timed(I2C_GetFlagStatus(I2Cx, I2C_FLAG_STOPF));
-  return Success;
+	// Wait for stop
+	Timed(I2C_GetFlagStatus(I2Cx, I2C_FLAG_STOPF));
+	
+	return Success;
 
  errReturn:
 
-  // Any cleanup here
-  return Error;
-
+	return Error;
 }
 
 /*
  * Write in polling mode
  */
-Status I2C_HAL_Write(I2C_TypeDef* I2Cx, const uint8_t* buf,  uint32_t nbyte, uint8_t slaveAddr)
+Status I2C_HAL_Write(I2C_HALType* I2C_HALStruct, const uint8_t* buf,  uint32_t nbyte, uint8_t slaveAddr)
 {
-    __IO uint32_t Timeout = 0;
+	__IO uint32_t Timeout = 0;
+	I2C_TypeDef* I2Cx;
 
-    /* Enable Error IT (used in all modes: DMA, Polling and Interrupts */
-    //    I2Cx->CR2 |= I2C_IT_ERR;
+	I2Cx = I2C_HALStruct->I2Cx;
 
-    if (nbyte)
-      {
-	Timed(I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY));
+	/* Enable Error IT (used in all modes: DMA, Polling and Interrupts */
+	//    I2Cx->CR2 |= I2C_IT_ERR;
+	if (nbyte) {
+		Timed(I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY));
 
-	// Intiate Start Sequence
+		// Intiate Start Sequence
+		I2C_GenerateSTART(I2Cx, ENABLE);
+		Timed(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT));
 
-	I2C_GenerateSTART(I2Cx, ENABLE);
-	Timed(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT));
+		// Send Address  EV5
+		I2C_Send7bitAddress(I2Cx, slaveAddres, I2C_Direction_Transmitter);
+		Timed(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
 
-	// Send Address  EV5
+		// EV6
+		// Write first byte EV8_1
+		I2C_SendData(I2Cx, *buf++);
 
-	I2C_Send7bitAddress(I2Cx, SlaveAddress, I2C_Direction_Transmitter);
-	Timed(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+		while (--nbyte) {
+			// wait on BTF
+			Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF));  
+			I2C_SendData(I2Cx, *buf++);
+		}
 
-	// EV6
-
-	// Write first byte EV8_1
-
-	I2C_SendData(I2Cx, *buf++);
-
-	while (--nbyte) {
-
-	  // wait on BTF
-
-	  Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF));  
-	  I2C_SendData(I2Cx, *buf++);
+		Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF));  
+		I2C_GenerateSTOP(I2Cx, ENABLE);
+		Timed(I2C_GetFlagStatus(I2C1, I2C_FLAG_STOPF));
 	}
+	
+	return Success;
 
-	Timed(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF));  
-	I2C_GenerateSTOP(I2Cx, ENABLE);
-	Timed(I2C_GetFlagStatus(I2C1, I2C_FLAG_STOPF));
-      }
-    return Success;
  errReturn:
-    return Error;
+	
+	return Error;
 }
 
-Status I2C_HAL_DeInit(I2C_HALType *I2C_HAL)
+Status I2C_HAL_DeInit(I2C_HALType *I2C_HALStruct)
 {
-        I2C_DeInit(I2C_HAL->I2Cx);
+        I2C_DeInit(I2C_HALStruct->I2Cx);
 }
