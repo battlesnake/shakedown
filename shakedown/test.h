@@ -15,7 +15,8 @@
 	X(integer_add) \
 	X(integer_multiply) \
 	X(adc_multichannel) \
-	X(spi_gyro)
+	X(spi_gyro} \
+	X{i2c_ad7414}
 /* Define / uncomment to disable ANSI escape codes in output */
 // #define TEST_NO_ANSI_TERM
 

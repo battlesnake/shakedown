@@ -1,21 +1,19 @@
 #include <FreeRTOS.h>
 #include <stm32f4xx_i2c.h>
 #include <stm32f4xx_gpio.h>
-#include <stm32f4xx_tim.h>
 #include <stdio.h>
 #include "i2c_hal.h"
 
 /*
  * Initialization of the HAL I2C   
  */
-
-Status I2CInit(I2C_HALType *I2C_HAL, uint8_t id)
+Status I2C_HAL_InitStruct(I2C_HALType *I2C_HAL, uint8_t id)
 {
 	// Set the I2C id number
 	I2C_HAL->id = id;
         
 	// Initialize the I2C HDL reference
-	if (id <= maxId) {
+	if (id > 0 && id <= maxId) {
 		I2C_HAL->I2Cx = I2Cs[id-1];
 	} else {
 		return Error;
@@ -33,7 +31,7 @@ Status I2CInit(I2C_HALType *I2C_HAL, uint8_t id)
 /*
  * Open the corresponding I2C interface depending on the HAL structure parameters
  */
-Status I2COpen(I2C_HALType *I2C_HAL)
+Status I2C_HAL_Init(I2C_HALType *I2C_HAL)
 {
 	I2C_InitTypeDef *I2C_InitStruct;
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -41,7 +39,7 @@ Status I2COpen(I2C_HALType *I2C_HAL)
 	if (I2C_HAL->id > maxId || \
 	    I2C_HAL->clockSpeed > maxClockSpeed || \
 	    !IS_I2C_ALL_PERIPH(I2C_HAL->I2Cx) || \
-	    !HAL_IS_I2C_DUTY_CYCLE(I2C_HAL->dutyCycle)) {
+	    !I2C_HAL_IS_DUTY_CYCLE(I2C_HAL->dutyCycle)) {
 		return Error;
 	}
 
@@ -96,6 +94,8 @@ Status I2COpen(I2C_HALType *I2C_HAL)
        	I2C_AcknowledgeConfig(I2C_HAL->I2Cx, ENABLE);
 
 	I2C_Cmd(I2C_HAL->I2Cx, ENABLE);
+
+	// Check the enabled bit and return error if not enabled
 	 
 	return Success;
 }
@@ -103,7 +103,7 @@ Status I2COpen(I2C_HALType *I2C_HAL)
 /* 
  *  Read in polling mode
  */
-Status I2C_Read(I2C_TypeDef* I2Cx, uint8_t *buf, uint32_t nbyte, uint8_t SlaveAddress)
+Status I2C_HAL_Read(I2C_TypeDef* I2Cx, uint8_t *buf, uint32_t nbyte, uint8_t slaveAddr)
 {
   __IO uint32_t Timeout = 0;
 
@@ -228,7 +228,7 @@ Status I2C_Read(I2C_TypeDef* I2Cx, uint8_t *buf, uint32_t nbyte, uint8_t SlaveAd
 /*
  * Write in polling mode
  */
-Status I2C_Write(I2C_TypeDef* I2Cx, const uint8_t* buf,  uint32_t nbyte, uint8_t SlaveAddress)
+Status I2C_HAL_Write(I2C_TypeDef* I2Cx, const uint8_t* buf,  uint32_t nbyte, uint8_t slaveAddr)
 {
     __IO uint32_t Timeout = 0;
 
@@ -272,12 +272,7 @@ Status I2C_Write(I2C_TypeDef* I2Cx, const uint8_t* buf,  uint32_t nbyte, uint8_t
     return Error;
 }
 
-Status I2C_Close(I2C_HALType *I2C_HAL)
+Status I2C_HAL_DeInit(I2C_HALType *I2C_HAL)
 {
-	// stop clocks
-}
-
-Status I2C_Deinit(I2C_HALType *I2C_HAL)
-{
-	// delete data
+        I2C_DeInit(I2C_HAL->I2Cx);
 }
