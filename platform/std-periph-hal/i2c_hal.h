@@ -6,11 +6,6 @@ extern "C" {
 #endif
 
 typedef enum {
-	Error = 0,
-	Success = !Error
-} Status;
-
-typedef enum {
 	dutyCycle_2 = 0,
 	dutyCycke_16_9 = 1
 } DutyCycleType;
@@ -23,11 +18,11 @@ typedef struct {
 	DutyCycleType dutyCycle; // Specifies the I2C fast mode duty cycle
 } I2C_HALType;
 
-Status I2C_HAL_InitStruct(I2C_HALType *I2C_HALStruct, uint8_t id);
-Status I2C_HAL_Init(I2C_HALType *I2C_HALStruct);
-Status I2C_HAL_Read(I2C_HALType *I2C_HALStruct, uint8_t *buf, uint32_t nbyte, uint8_t slaveAddress);
-Status I2C_HAL_Write(I2C_HALType *I2C_HALStruct, const uint8_t* buf, uint32_t nbyte, uint8_t slaveAddress);
-Status I2C_HAL_Deinit(I2C_HALType *I2C_HALStruct);
+Status_t I2C_HAL_InitStruct(I2C_HALType *I2C_HALStruct, uint8_t id);
+Status_t I2C_HAL_Init(I2C_HALType *I2C_HALStruct);
+Status_t I2C_HAL_Read(I2C_HALType *I2C_HALStruct, uint8_t *buf, uint32_t nbyte, uint8_t slaveAddress);
+Status_t I2C_HAL_Write(I2C_HALType *I2C_HALStruct, const uint8_t* buf, uint32_t nbyte, uint8_t slaveAddress);
+Status_t I2C_HAL_Deinit(I2C_HALType *I2C_HALStruct);
 
 #define Timed(x) Timeout = 0xFFFF; while (x) { if (Timeout-- == 0) goto errReturn;}
 

@@ -2,12 +2,13 @@
 #include <stm32f4xx_i2c.h>
 #include <stm32f4xx_gpio.h>
 #include <stdio.h>
+#include <config.h>
 #include "i2c_hal.h"
 
 /*
  * Initialization of the HAL structure
  */
-Status I2C_HAL_InitStruct(I2C_HALType *I2C_HALStruct, uint8_t id)
+Status_t I2C_HAL_InitStruct(I2C_HALType *I2C_HALStruct, uint8_t id)
 {
 	// Set the I2C id number
 	I2C_HALStruct->id = id;
@@ -31,7 +32,7 @@ Status I2C_HAL_InitStruct(I2C_HALType *I2C_HALStruct, uint8_t id)
 /*
  * Start the corresponding I2C interface depending on the HAL structure parameters
  */
-Status I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
+Status_t I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 {
 	I2C_InitTypeDef I2C_HDLStruct;
 	GPIO_InitTypeDef GPIO_HDLStruct;
@@ -98,7 +99,7 @@ Status I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 /* 
  *  Read in polling mode
  */
-Status I2C_HAL_Read(I2C_HALType* I2C_HALStruct, uint8_t *buf, uint32_t nbyte, uint8_t slaveAddress)
+Status_t I2C_HAL_Read(I2C_HALType* I2C_HALStruct, uint8_t *buf, uint32_t nbyte, uint8_t slaveAddress)
 {
 	__IO uint32_t Timeout = 0;
 	I2C_TypeDef* I2Cx;
@@ -201,7 +202,7 @@ Status I2C_HAL_Read(I2C_HALType* I2C_HALStruct, uint8_t *buf, uint32_t nbyte, ui
 /*
  * Write in polling mode
  */
-Status I2C_HAL_Write(I2C_HALType* I2C_HALStruct, const uint8_t* buf,  uint32_t nbyte, uint8_t slaveAddress)
+Status_t I2C_HAL_Write(I2C_HALType* I2C_HALStruct, const uint8_t* buf,  uint32_t nbyte, uint8_t slaveAddress)
 {
 	__IO uint32_t Timeout = 0;
 	I2C_TypeDef* I2Cx;
@@ -243,7 +244,7 @@ Status I2C_HAL_Write(I2C_HALType* I2C_HALStruct, const uint8_t* buf,  uint32_t n
 	return Error;
 }
 
-Status I2C_HAL_DeInit(I2C_HALType *I2C_HALStruct)
+Status_t I2C_HAL_DeInit(I2C_HALType *I2C_HALStruct)
 {
         I2C_DeInit(I2C_HALStruct->I2Cx);
 

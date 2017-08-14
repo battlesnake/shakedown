@@ -56,3 +56,8 @@
 //
 // Macro to use CCM (Core Coupled Memory) in STM32F4
 #define CCM_RAM __attribute__((section(".ccmram")))
+
+typedef enum {
+	Error = 0,
+	Success = !Error
+} Status_t;
