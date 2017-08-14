@@ -108,27 +108,27 @@
 
 #if defined ( __CC_ARM )
   #if defined __TARGET_FPU_VFP
-    #warning "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT)"
-  #endif
+    #warning "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT) 1"
+#endif
 
 #elif defined ( __ICCARM__ )
   #if defined __ARMVFP__
-    #warning "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT)"
+    #warning "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT) 2"
   #endif
 
 #elif defined ( __TMS470__ )
   #if defined __TI__VFP_SUPPORT____
-    #warning "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT)"
+    #warning "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT) 3"
   #endif
 
-#elif defined ( __GNUC__ )
-  #if defined (__VFP_FP__) && !defined(__SOFTFP__)
-    #warning "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT)"
-  #endif
+#elif defined ( __GNUC__)
+   #if defined (__VFP_FP__) && !defined(__SOFTFP__)
+     #warning "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT) 4"
+   #endif
 
 #elif defined ( __TASKING__ )
   #if defined __FPU_VFP__
-    #error "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT)"
+    #error "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT) 5"
   #endif
 #endif
 

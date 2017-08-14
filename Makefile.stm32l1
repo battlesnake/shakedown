@@ -98,6 +98,7 @@ ifeq ($(use_freertos),y)
 source_exclude += FreeRTOS
 
 include_dirs += FreeRTOS/portable/GCC/ARM_CM4F
+include_dirs += platform/std-periph-hal/
 
 objects-freertos += portable/GCC/ARM_CM4F/port.o
 endif
@@ -115,7 +116,7 @@ objects-platform += std-periph/stm32l1xx_adc.o
 objects-platform += std-periph/stm32l1xx_i2c.o
 objects-platform += std-periph/stm32l1xx_dma.o
 objects-platform += std-periph/stm32l1xx_rcc.o
-objects-platform += std-periph-hal/i2c_hal.o
+objects-platform += ../std-periph-hal/i2c_hal.o
 ifeq ($(use_semihosting),n)
 objects-platform += syscalls.o
 endif

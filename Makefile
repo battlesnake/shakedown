@@ -54,7 +54,7 @@ MAKEFLAGS += -s
 endif
 
 # Language of program (used to choose gcc/g++ for linking)
-language ?= c
+language ?= c++
 
 # Name of program (used to generate output filename(s))
 project_name = program

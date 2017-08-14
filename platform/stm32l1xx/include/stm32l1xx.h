@@ -200,7 +200,8 @@
 #define __MPU_PRESENT             1     /*!< STM32L1 provides MPU                         */
 #define __NVIC_PRIO_BITS          4     /*!< STM32L1 uses 4 Bits for the Priority Levels  */
 #define __Vendor_SysTickConfig    0     /*!< Set to 1 if different SysTick Config is used */
- 
+#define __FPU_PRESENT             0     /*!< FPU present                                   */
+
 /*!< Interrupt Number Definition */
 typedef enum IRQn
 {

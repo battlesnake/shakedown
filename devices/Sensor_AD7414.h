@@ -2,8 +2,7 @@
 #define DEF_Sensor_AD7414
 
 #include "Sensor.h"
-#include "i2c_hal.h"
-
+	
 /* AD7414 registers */
 #define AD7414_REG_TEMP		0x00
 #define AD7414_REG_CONF		0x01
@@ -27,16 +26,17 @@ class Sensor_AD7414 : public Sensor
 	uint32_t clockSpeed; //!< Configures the serial interface clock speed
 	uint8_t dutyCycle; //!< Configures the serial interface duty cycle
 	uint16_t temperature; //!< Stores the temperature value from the sensor
+	uint8_t valid;
 	
 	//! \brief Builds a sensor interface with the provided sensor configuration. By default, the default configuration is used.
         Sensor_AD7414();
 
-	bool initialize();
+	//bool initialize();
 
 	// Note: write 1 to D7 of the config
-	bool fullPowerDown(bool state);
+	//bool fullPowerDown(bool state);
 
-	bool getTemperature(int16 *temperature);
+	//bool getTemperature(int16_t *temperature);
 	
 	//bool setMinMax();
 
@@ -44,9 +44,10 @@ class Sensor_AD7414 : public Sensor
 
 	//bool getAlarm();
 
-	bool deinitialize();
+	//bool deinitialize();
 	
     protected:
 	
-	int16_t tempFromReg(uint16_t reg);		
-}
+	//int16_t tempFromReg(uint16_t reg);		
+};
+#endif

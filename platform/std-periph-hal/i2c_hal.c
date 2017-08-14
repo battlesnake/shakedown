@@ -1,6 +1,13 @@
 #include <FreeRTOS.h>
+#ifdef STM32F4XX
 #include <stm32f4xx_i2c.h>
 #include <stm32f4xx_gpio.h>
+#include <stm32f4xx_rcc.h>
+#else
+#include <stm32l1xx_i2c.h>
+#include <stm32l1xx_gpio.h>
+#include <stm32l1xx_rcc.h>
+#endif
 #include <stdio.h>
 #include <config.h>
 #include "i2c_hal.h"
@@ -48,7 +55,7 @@ Status_t I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 	// Enable clocks and GPIOs according to the I2C id
 	if (I2C_HALStruct->id == 1) {
 		/* Enable the clock for the GPIOs */
-		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+		RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
 
 		// Connect the I2C function to the pins
 		GPIO_PinAFConfig(GPIOB, GPIO_PinSource8, GPIO_AF_I2C1);
@@ -58,7 +65,7 @@ Status_t I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 		GPIO_StructInit(&GPIO_HDLStruct);
 		GPIO_HDLStruct.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
 		GPIO_HDLStruct.GPIO_OType = GPIO_OType_OD;	
-		GPIO_HDLStruct.GPIO_Speed = GPIO_Speed_50MHz;
+		GPIO_HDLStruct.GPIO_Speed = GPIO_Speed_40MHz;
 		GPIO_HDLStruct.GPIO_Mode = GPIO_Mode_AF;
 		GPIO_HDLStruct.GPIO_PuPd = GPIO_PuPd_UP;
 		GPIO_Init(GPIOB, &GPIO_HDLStruct);
