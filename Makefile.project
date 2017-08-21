@@ -25,4 +25,4 @@ use_lto = n
 
 .DEFAULT: all
 
-include Makefile.eps
+include Makefile.obdh
