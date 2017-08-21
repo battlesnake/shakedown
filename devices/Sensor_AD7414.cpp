@@ -2,7 +2,7 @@
 
 Sensor_AD7414::Sensor_AD7414()
 {
-	slaveAddress = AD7414_ADDRESS;
+	slaveAddress = AD7414_ADDRESS << 1;
 	powerMode = powerOn;
 	interfaceId = 1;
 	clockSpeed = 5000;
@@ -57,7 +57,7 @@ Status_t Sensor_AD7414::getTemperature(int16_t *tempC)
 	// Set the address to read from
 	buffer[0] = AD7414_REG_TEMP;
 	status = I2C_HAL_Write(&I2C_HALStruct, buffer, 1, slaveAddress);
-
+	
 	if (status == Error) {
 		return Error;
 	}       

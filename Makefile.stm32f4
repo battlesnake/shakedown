@@ -106,6 +106,7 @@ include_dirs += platform/std-periph-hal/
 include_dirs += platform/stm32f4xx/
 include_dirs += platform/stm32f4xx/inc/
 include_dirs += platform/stm32f4xx/std-periph/inc/
+include_dirs += devices/
 
 # Explicitly specify which files we want from platform
 source_exclude += platform

@@ -39,6 +39,8 @@ class Sensor_AD7414 : public Sensor
 	} ad7414Mode;
 	
 	I2C_HALType I2C_HALStruct; //!< Reference to the I2C interface HAL structure
+	// Use a generic interface to make it possible using different interfaces?
+	// Create a subclass for the interface settings?
 
 	uint8_t slaveAddress; //!< Address of the sensor
 	uint8_t interfaceId; //!< Configures the serial interface id
@@ -59,6 +61,8 @@ class Sensor_AD7414 : public Sensor
 
 	Status_t getTemperature(int16_t *temperature);
 
+	//Status_t setMinMax(); //!< Sets the min/max alarm values
+	//Status_t getMinMax(uint8_t *min, uint8_t *max); // Get the min/max alarm values
 	//Status_t getAlarm(); //!< Gets the alarm status
 
 	Status_t deinitialize();
@@ -67,7 +71,5 @@ class Sensor_AD7414 : public Sensor
 	
 	int16_t tempFromReg(uint16_t reg); //!< Converts the register value into celsius
 	Status_t fullPowerDown(bool state); //!< Enables or disables the full power down mode
-	//Status_t setMinMax(); //!< Sets the min/max alarm values
-	//Status_t getMinMax(uint8_t *min, uint8_t *max); // Get the min/max alarm values
 };
 #endif

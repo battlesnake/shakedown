@@ -18,7 +18,6 @@
 	X(spi_gyro) \
         X(i2c_ad7414)
 /* Define / uncomment to disable ANSI escape codes in output */
-// #define TEST_NO_ANSI_TERM
 
 /* Define / uncomment to use custom implementation of _test_log* functions */
 // #define TEST_LOG_CUSTOM
@@ -112,8 +111,9 @@ void test_shell();
 /* Macro to define a test */
 #define TEST_DEFINE(suite_name) \
 	struct TestSuite test_suite_##suite_name = { \
-		.name = #suite_name, \
-		.func = test_##suite_name \
+		#suite_name, \
+		test_##suite_name, \
+		NULL, false, {} \
 	}; \
 	TEST_FUNC_SIGNATURE(test_##suite_name)
 

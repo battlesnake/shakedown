@@ -261,7 +261,7 @@ Status_t I2C_HAL_Write(I2C_HALType* I2C_HALStruct, const uint8_t* buf,  uint32_t
 	return Error;
 }
 
-Status_t I2C_HAL_DeInit(I2C_HALType *I2C_HALStruct)
+Status_t I2C_HAL_Deinit(I2C_HALType *I2C_HALStruct)
 {
         I2C_DeInit(I2C_HALStruct->I2Cx);
 

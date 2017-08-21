@@ -1,3 +1,5 @@
+#include <FreeRTOS.h>
+#include <misc.h>
 #include <stdio.h>
 #include <metadata.h>
 #include <test.h>
@@ -11,6 +13,8 @@ int main(int argc, char *argv[])
 	(void) argc;
 	(void) argv;
 #endif
+	SystemInit();
+
 	print_build_configuration();
 	printf("Dummy program, run by default when not invoking the test runner\n");
 	printf("\n");
