@@ -46,6 +46,7 @@ Status_t I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 	I2C_InitTypeDef I2C_HDLStruct;
 	GPIO_InitTypeDef GPIO_HDLStruct;
 
+	// Check if parameters are properly set
 	if (I2C_HALStruct->id > I2C_MAX_ID || \
 	    I2C_HALStruct->id == 0 || \
 	    I2C_HALStruct->clockSpeed > I2C_MAX_CLOCK_SPEED || \

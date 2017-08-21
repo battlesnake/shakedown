@@ -21,6 +21,8 @@ extern "C" {
 #define AD7414_REG_T_HIGH	0x02
 #define AD7414_REG_T_LOW	0x03
 
+#define AD7414_IS_TEMP(TEMP) (((TEMP) >= -40) && \
+			      ((MODE) <= 125))
 #define AD7414_IS_MODE(MODE) (((MODE) == 0) || \
 			      ((MODE) == 1))
 #define AD7414_IS_ID(ID) (((ID) == 1) || \
@@ -46,6 +48,10 @@ class Sensor_AD7414 : public Sensor
 	uint8_t interfaceId; //!< Configures the serial interface id
 	uint32_t clockSpeed; //!< Configures the serial interface clock speed
 	DutyCycleType dutyCycle; //!< Configures the serial interface duty cycle
+
+	bool useAlarm; //!< Set up to true to use the alarm functionality
+	int8_t tempHigh; //!< Set up the alarm high boundary
+	int8_t tempLow; //!< Set up the alarm low boundary
 	
 	uint16_t temperature; //!< Stores the temperature value from the sensor
 	uint8_t valid; //!< Indicates if the current temperature value is valid
@@ -61,8 +67,6 @@ class Sensor_AD7414 : public Sensor
 
 	Status_t getTemperature(int16_t *temperature);
 
-	//Status_t setMinMax(); //!< Sets the min/max alarm values
-	//Status_t getMinMax(uint8_t *min, uint8_t *max); // Get the min/max alarm values
 	//Status_t getAlarm(); //!< Gets the alarm status
 
 	Status_t deinitialize();
@@ -71,5 +75,7 @@ class Sensor_AD7414 : public Sensor
 	
 	int16_t tempFromReg(uint16_t reg); //!< Converts the register value into celsius
 	Status_t fullPowerDown(bool state); //!< Enables or disables the full power down mode
+	Status_t setMinMax(); //!< Sets the min/max alarm values
+	//Status_t getMinMax(uint8_t *min, uint8_t *max); //!< Get the min/max alarm values
 };
 #endif

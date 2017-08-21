@@ -3,6 +3,8 @@ extern "C" {
 #include <stdio.h>
 }
 #include <Sensor_AD7414.hpp>
+#define MAX_TEMP 125
+#define MIN_TEMP -40
 
 TEST_DEFINE(i2c_ad7414)
 {
@@ -18,7 +20,7 @@ TEST_DEFINE(i2c_ad7414)
 	status = ad7414.getTemperature(&temperature);
 
 	sprintf(strBuf, "Temperature acquired: %d C", (int)temperature);
-	test_assert(strBuf, status);
+	test_assert(strBuf, status && temperature > MIN_TEMP && temperature < MAX_TEMP);
 
 	status = ad7414.deinitialize();
 
