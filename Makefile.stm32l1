@@ -8,11 +8,12 @@ defines += STM32L10_15xxx
 defines += HSE_VALUE=$(clock_rate)
 defines += __FPU_PRESENT=0
 defines += __FPU_USED=0
+defines += __SOFTFP__
 defines += ARM_MATH_CM3
 
 flash_addr = 0x8000000
 
-mach_flags += -mcpu=cortex-m3
+mach_flags += -mfloat-abi=softfp -mcpu=cortex-m3
 
 c_flags += $(mach_flags)
 
@@ -97,11 +98,16 @@ ifeq ($(use_freertos),y)
 # Explicitly specify which files we want from FreeRTOS
 source_exclude += FreeRTOS
 
-include_dirs += FreeRTOS/portable/GCC/ARM_CM4F
-include_dirs += platform/std-periph-hal/
+include_dirs += FreeRTOS/portable/GCC/ARM_CM3
 
-objects-freertos += portable/GCC/ARM_CM4F/port.o
+objects-freertos += portable/GCC/ARM_CM3/port.o
 endif
+
+include_dirs += config/stm32l1xx/
+include_dirs += platform/std-periph-hal/
+include_dirs += platform/stm32l1xx/
+include_dirs += platform/stm32l1xx/inc/
+include_dirs += platform/stm32l1xx/std-periph/inc/
 
 # Explicitly specify which files we want from platform
 source_exclude += platform
@@ -110,15 +116,18 @@ objects-platform =
 objects-platform += startup_stm32l1xx.os
 objects-platform += stm32l1xx_it.o
 objects-platform += system_stm32l1xx.o
-objects-platform += std-periph/misc.o
 objects-platform += std-periph/stm32l1xx_gpio.o
 objects-platform += std-periph/stm32l1xx_adc.o
 objects-platform += std-periph/stm32l1xx_i2c.o
 objects-platform += std-periph/stm32l1xx_dma.o
 objects-platform += std-periph/stm32l1xx_rcc.o
-objects-platform += ../std-periph-hal/i2c_hal.o
+
+objects-platform-hal = 
+objects-platform-hal += std-periph-hal/i2c_hal.o
+
 ifeq ($(use_semihosting),n)
 objects-platform += syscalls.o
 endif
 
 objects += $(addprefix $(tmpdir)/platform/stm32l1xx/,$(objects-platform))
+objects += $(addprefix $(tmpdir)/platform/,$(objects-platform-hal))

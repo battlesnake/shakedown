@@ -1,3 +1,5 @@
+#ifndef I2C_HAL
+#define I2C_HAL
 #include <FreeRTOS.h>
 #include <config.h>
 #ifdef STM32F4XX
@@ -5,9 +7,6 @@
 #else
 #include <stm32l1xx_i2c.h>
 #endif
-
-#ifndef I2C_HAL
-#define I2C_HAL
 
 typedef enum {
 	dutyCycle_2 = 0,
@@ -35,9 +34,12 @@ Status_t I2C_HAL_Deinit(I2C_HALType *I2C_HALStruct);
 // * Nucleo Board Pins
 // * D15 PB8 SCL
 // * D14 PB9 SDA
-#define I2C_MAX_ID 2
 #define I2C_MAX_CLOCK_SPEED 400000
 
-I2C_TypeDef *I2Cs[I2C_MAX_ID] = {I2C1, I2C2};
+#ifdef STM32F4XX
+#define I2C_MAX_ID 3
+#else
+#define I2C_MAX_ID 2
+#endif
 
 #endif

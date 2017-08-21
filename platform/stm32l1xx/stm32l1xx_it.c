@@ -28,8 +28,23 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include <FreeRTOS.h>
 #include "stm32l1xx_it.h"
+#include <core_cm3.h>
+#include <semphr.h>
 #include "main.h"
+#include <stdio.h>
+#include <stm32l1xx_adc.h>
+#include <stm32l1xx_dma.h>
+#include <stm32l1xx_tim.h>
+
+SemaphoreHandle_t xADCSemaphore;
+
+void vISRCreateADCSemaphore(const UBaseType_t uxCounterSize, SemaphoreHandle_t *pxSemaphoreHandle)
+{
+       	xADCSemaphore = xSemaphoreCreateCounting(uxCounterSize, 0);
+	*pxSemaphoreHandle = xADCSemaphore;
+}
 
 /** @addtogroup Template_Project
   * @{
@@ -51,9 +66,9 @@
   * @param  None
   * @retval None
   */
-void NMI_Handler(void)
+/*void NMI_Handler(void)
 {
-}
+}*/
 
 /**
   * @brief  This function handles Hard Fault exception.
@@ -112,9 +127,9 @@ void UsageFault_Handler(void)
   * @param  None
   * @retval None
   */
-void SVC_Handler(void)
+/*void SVC_Handler(void)
 {
-}
+}*/
 
 /**
   * @brief  This function handles Debug Monitor exception.
@@ -130,18 +145,18 @@ void DebugMon_Handler(void)
   * @param  None
   * @retval None
   */
-void PendSV_Handler(void)
+/*void PendSV_Handler(void)
 {
-}
+}*/
 
 /**
   * @brief  This function handles SysTick Handler.
   * @param  None
   * @retval None
   */
-void SysTick_Handler(void)
+/*void SysTick_Handler(void)
 {
-}
+}*/
 
 /******************************************************************************/
 /*                 STM32L1xx Peripherals Interrupt Handlers                   */
@@ -151,17 +166,84 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief  This function handles PPP interrupt request.
+  * @brief  This function handles the TIM1 Capture Compare interrupt request.
   * @param  None
   * @retval None
   */
-/*void PPP_IRQHandler(void)
+void TIM2_CC_IRQHandler(void)
 {
-}*/
+       	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+	//printf("CNT register at address 0x%08x = 0x%08x\n", (int)&TIM2->CNT, (int)TIM2->CNT);
+	
+       	/* Check if the interrupt source */
+       	if(TIM_GetITStatus(TIM2, TIM_IT_CC2))
+	{		
+       	       	/* Clear the interrupt flag */
+		TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);		
+      	}
+
+        /* Perform a context switch to the highest priority task */
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+/**
+  * @brief  This function handles ADC interrupt request.
+  * @param  None
+  * @retval None
+  */
+void ADC_IRQHandler(void)
+{
+       	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+	printf("enter ADC interrupt handler\n");
+	
+       	/* Check if the interrupt source is the ADC end of conversion */
+       	if(ADC_GetITStatus(ADC1, ADC_IT_EOC))
+	{		
+       	       	/* Clear the interrupt flag */
+		ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
+		printf("EOC interrupt\n");
+       	       	/* Give a semaphore to the ADC */
+       	       	//xSemaphoreGiveFromISR(xADCSemaphore, &xHigherPriorityTaskWoken);
+      	}
+
+	printf("exiting ADC interrupt handler\n");
+  
+        /* Perform a context switch to the highest priority task */
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+void DMA1_Channel1_IRQHandler(void)
+{
+       	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+	//print_regs((uint32_t *)DMA2);
+	//DMA2 0x40026400
+	//ADC1 0x40012000
+
+	/* Clear half transfer interrupt */
+	if(DMA_GetITStatus(DMA1_IT_HT1))
+	{		
+       	       	/* Clear the interrupt flag */
+		DMA_ClearITPendingBit(DMA1_IT_HT1);
+	}
+       	/* Check if the interrupt source is transfer complete */
+	else if(DMA_GetITStatus(DMA1_IT_TC1))
+	{		
+       	       	/* Clear the interrupt flag */
+		DMA_ClearITPendingBit(DMA1_IT_TC1);
+
+		/* Give the semaphore */
+       	       	xSemaphoreGiveFromISR(xADCSemaphore, &xHigherPriorityTaskWoken);		
+      	}
+
+        /* Perform a context switch to the highest priority task */
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
 
 /**
   * @}
-  */ 
-
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

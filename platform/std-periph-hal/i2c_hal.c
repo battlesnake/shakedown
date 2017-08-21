@@ -1,16 +1,18 @@
-#include <FreeRTOS.h>
 #ifdef STM32F4XX
-#include <stm32f4xx_i2c.h>
 #include <stm32f4xx_gpio.h>
 #include <stm32f4xx_rcc.h>
 #else
-#include <stm32l1xx_i2c.h>
 #include <stm32l1xx_gpio.h>
 #include <stm32l1xx_rcc.h>
 #endif
 #include <stdio.h>
-#include <config.h>
 #include "i2c_hal.h"
+
+#ifdef STM32F4XX
+I2C_TypeDef *I2Cs[I2C_MAX_ID] = {I2C1, I2C2, I2C3};
+#else
+I2C_TypeDef *I2Cs[I2C_MAX_ID] = {I2C1, I2C2};
+#endif
 
 /*
  * Initialization of the HAL structure
@@ -24,7 +26,7 @@ Status_t I2C_HAL_InitStruct(I2C_HALType *I2C_HALStruct, uint8_t id)
 	if (id > 0 && id <= I2C_MAX_ID) {
 		I2C_HALStruct->I2Cx = I2Cs[id-1];
 	} else {
-		//	return Error;
+		return Error;
 	}
 
 	// Default clock speed set to 5 KHz
@@ -55,8 +57,12 @@ Status_t I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 	// Enable clocks and GPIOs according to the I2C id
 	if (I2C_HALStruct->id == 1) {
 		/* Enable the clock for the GPIOs */
+		#ifdef STM32F4XX
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+		#else
 		RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
-
+		#endif
+		
 		// Connect the I2C function to the pins
 		GPIO_PinAFConfig(GPIOB, GPIO_PinSource8, GPIO_AF_I2C1);
 		GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF_I2C1);
@@ -64,8 +70,12 @@ Status_t I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 		/* Configure the SPI chip select and reset pins */
 		GPIO_StructInit(&GPIO_HDLStruct);
 		GPIO_HDLStruct.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
-		GPIO_HDLStruct.GPIO_OType = GPIO_OType_OD;	
+		GPIO_HDLStruct.GPIO_OType = GPIO_OType_OD;
+		#ifdef STM32F4XX
+		GPIO_HDLStruct.GPIO_Speed = GPIO_Speed_50MHz;
+		#else
 		GPIO_HDLStruct.GPIO_Speed = GPIO_Speed_40MHz;
+		#endif
 		GPIO_HDLStruct.GPIO_Mode = GPIO_Mode_AF;
 		GPIO_HDLStruct.GPIO_PuPd = GPIO_PuPd_UP;
 		GPIO_Init(GPIOB, &GPIO_HDLStruct);

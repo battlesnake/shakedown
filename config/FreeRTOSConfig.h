@@ -87,7 +87,11 @@
 #include <stdint.h>
 #endif
 
+#ifdef STM32F4XX 
 #include "system_stm32f4xx.h"
+#else
+#include "system_stm32l1xx.h"
+#endif
 
 #define configSUPPORT_STATIC_ALLOCATION 1
 

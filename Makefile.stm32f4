@@ -101,6 +101,12 @@ include_dirs += FreeRTOS/portable/GCC/ARM_CM4F
 objects-freertos += portable/GCC/ARM_CM4F/port.o
 endif
 
+include_dirs += config/stm32f4xx/
+include_dirs += platform/std-periph-hal/
+include_dirs += platform/stm32f4xx/
+include_dirs += platform/stm32f4xx/inc/
+include_dirs += platform/stm32f4xx/std-periph/inc/
+
 # Explicitly specify which files we want from platform
 source_exclude += platform
 
@@ -108,15 +114,18 @@ objects-platform =
 objects-platform += startup_stm32f4xx.os
 objects-platform += stm32f4xx_it.o
 objects-platform += system_stm32f4xx.o
-objects-platform += std-periph-stm32f4/misc.o
-objects-platform += std-periph-stm32f4/stm32f4xx_gpio.o
-objects-platform += std-periph-stm32f4/stm32f4xx_adc.o
-objects-platform += std-periph-stm32f4/stm32f4xx_i2c.o
-objects-platform += std-periph-stm32f4/stm32f4xx_dma.o
-objects-platform += std-periph-stm32f4/stm32f4xx_rcc.o
-objects-platform += std-periph-hal/i2c_hal.o
+objects-platform += std-periph/stm32f4xx_gpio.o
+objects-platform += std-periph/stm32f4xx_rcc.o
+objects-platform += std-periph/stm32f4xx_i2c.o
+objects-platform += std-periph/stm32f4xx_adc.o
+objects-platform += std-periph/stm32f4xx_dma.o
+
+objects-platform-hal = 
+objects-platform-hal += std-periph-hal/i2c_hal.o
+
 ifeq ($(use_semihosting),n)
 objects-platform += syscalls.o
 endif
 
-objects += $(addprefix $(tmpdir)/platform/stm32f4xx,$(objects-platform))
+objects += $(addprefix $(tmpdir)/platform/stm32f4xx/,$(objects-platform))
+objects += $(addprefix $(tmpdir)/platform/,$(objects-platform-hal))
