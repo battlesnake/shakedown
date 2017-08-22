@@ -103,12 +103,14 @@ include_dirs += FreeRTOS/portable/GCC/ARM_CM3
 objects-freertos += portable/GCC/ARM_CM3/port.o
 endif
 
+include_dirs += board/
 include_dirs += config/stm32l1xx/
 include_dirs += platform/std-periph-hal/
 include_dirs += platform/stm32xxxx/
 include_dirs += platform/stm32l1xx/
 include_dirs += platform/stm32l1xx/inc/
 include_dirs += platform/stm32l1xx/std-periph/inc/
+include_dirs += devices/
 
 # Explicitly specify which files we want from platform
 source_exclude += platform

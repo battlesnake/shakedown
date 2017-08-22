@@ -57,10 +57,14 @@
 // Macro to use CCM (Core Coupled Memory) in STM32F4
 #define CCM_RAM __attribute__((section(".ccmram")))
 
-#ifndef STATUS_T_DEF
-#define STATUS_T_DEF 1
+#ifndef GLOB_DEF
+#define GLOB_DEF 1
+
 typedef enum {
 	        Error = 0,
 		Success = !Error
 } Status_t;
+
+#define Timed(x) Timeout = 0xFFFF; while (x) { if (Timeout-- == 0) goto errReturn;}
+
 #endif

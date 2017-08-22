@@ -64,7 +64,7 @@
 /* Uncomment the line below according to the target STM32 device used in your
    application 
   */
-
+  
 #if !defined(STM32F40_41xxx) && !defined(STM32F427_437xx) && !defined(STM32F429_439xx) && !defined(STM32F401xx) && !defined(STM32F410xx) && \
     !defined(STM32F411xE) && !defined(STM32F446xx) && !defined(STM32F469_479xx)
   /* #define STM32F40_41xxx */   /*!< STM32F405RG, STM32F405VG, STM32F405ZG, STM32F415RG, STM32F415VG, STM32F415ZG,  
@@ -11433,6 +11433,11 @@ typedef struct
 /**
   * @}
   */
+
+#define I2C_MAX_ID 3
+#define I2C_MAX_CLOCK_SPEED 400000
+
+#define I2Cs(id) *(((uint32_t[]){I2C1_BASE, I2C2_BASE, I2C3_BASE}) + (id));
 
 #ifdef __cplusplus
 }

@@ -102,7 +102,7 @@ Status_t Sensor_AD7414::getTemperature(int16_t *tempC)
  */
 Status_t Sensor_AD7414::deinitialize()
 {
-	I2C_HAL_Deinit(&I2C_HALStruct);
+	I2C_HAL_DeInit(&I2C_HALStruct);
 	
 	return Success;
 }

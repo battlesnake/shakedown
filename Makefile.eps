@@ -4,5 +4,7 @@ link_script ?= config/linker.ld
 
 mach_flags = -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -finline-functions -Wdouble-promotion
 
+defines += BOARD_EPS
+
 include Makefile.freertos
 include Makefile.stm32l1

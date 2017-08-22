@@ -1,17 +1,8 @@
 #include <stm32xxxx_gpio.h>
-#ifdef STM32F4XX
-#include <stm32f4xx_rcc.h>
-#else
-#include <stm32l1xx_rcc.h>
-#endif
+#include <stm32xxxx_rcc.h>
 #include <stdio.h>
 #include "i2c_hal.h"
-
-#ifdef STM32F4XX
-I2C_TypeDef *I2Cs[I2C_MAX_ID] = {I2C1, I2C2, I2C3}; 
-#else
-I2C_TypeDef *I2Cs[I2C_MAX_ID] = {I2C1, I2C2};
-#endif
+#include "board.h"
 
 /*
  * Initialization of the HAL structure
@@ -23,7 +14,7 @@ Status_t I2C_HAL_InitStruct(I2C_HALType *I2C_HALStruct, uint8_t id)
         
 	// Initialize the I2C HDL reference
 	if (id > 0 && id <= I2C_MAX_ID) {
-		I2C_HALStruct->I2Cx = I2Cs[id-1];
+		I2C_HALStruct->I2Cx = (I2C_TypeDef *) I2Cs(id-1);
 	} else {
 		return Error;
 	}
@@ -33,6 +24,9 @@ Status_t I2C_HAL_InitStruct(I2C_HALType *I2C_HALStruct, uint8_t id)
 
 	// Default duty cycle
 	I2C_HALStruct->dutyCycle = dutyCycle_2;
+
+	// Initialize the lock status
+	I2C_HALStruct->lock = 0; 
 
        	return Success;
 }
@@ -54,40 +48,34 @@ Status_t I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 		return Error;
 	}
 
+	I2C_HALStruct->lock = 1;  
+
 	// Enable clocks and GPIOs according to the I2C id
 	if (I2C_HALStruct->id == 1) {
 		/* Enable the clock for the GPIOs */
-		#ifdef STM32F4XX
-		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
-		#else
-		RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
-		#endif
+		I2C1_GPIOClockEnable(I2C1_GPIO_Clock, ENABLE);
 		
 		// Connect the I2C function to the pins
-		GPIO_PinAFConfig(GPIOB, GPIO_PinSource8, GPIO_AF_I2C1);
-		GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF_I2C1);
+		GPIO_PinAFConfig(I2C1_GPIO, I2C1_GPIO_Pin1, GPIO_AF_I2C1);
+		GPIO_PinAFConfig(I2C1_GPIO, I2C1_GPIO_Pin2, GPIO_AF_I2C1);
 
 		/* Configure the SPI chip select and reset pins */
 		GPIO_StructInit(&GPIO_HDLStruct);
-		GPIO_HDLStruct.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
+		GPIO_HDLStruct.GPIO_Pin = I2C1_PIN_SCL | I2C1_PIN_SDA;
 		GPIO_HDLStruct.GPIO_OType = GPIO_OType_OD;
-		#ifdef STM32F4XX
-		GPIO_HDLStruct.GPIO_Speed = GPIO_Speed_50MHz;
-		#else
-		GPIO_HDLStruct.GPIO_Speed = GPIO_Speed_40MHz;
-		#endif
+		GPIO_HDLStruct.GPIO_Speed = I2C1_GPIO_SPEED;
 		GPIO_HDLStruct.GPIO_Mode = GPIO_Mode_AF;
 		GPIO_HDLStruct.GPIO_PuPd = GPIO_PuPd_UP;
-		GPIO_Init(GPIOB, &GPIO_HDLStruct);
+		GPIO_Init(I2C1_GPIO, &GPIO_HDLStruct);
 	
 		/* Enable the clock for the I2C */
-		RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
+	        I2C1_ClockEnable(I2C1_Clock, ENABLE);
 	} else if (I2C_HALStruct->id == 2) {
 		// TODO
 	} else {
 		// TODO
 	}
-
+	
 	// Initialize the HDL structure with default values
 	I2C_StructInit(&I2C_HDLStruct);
 
@@ -261,9 +249,11 @@ Status_t I2C_HAL_Write(I2C_HALType* I2C_HALStruct, const uint8_t* buf,  uint32_t
 	return Error;
 }
 
-Status_t I2C_HAL_Deinit(I2C_HALType *I2C_HALStruct)
+Status_t I2C_HAL_DeInit(I2C_HALType *I2C_HALStruct)
 {
         I2C_DeInit(I2C_HALStruct->I2Cx);
+	
+	I2C_HALStruct->lock = 0;
 
 	return Success;
 }

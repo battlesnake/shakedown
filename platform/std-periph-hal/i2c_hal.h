@@ -2,11 +2,7 @@
 #define I2C_HAL
 #include <FreeRTOS.h>
 #include <config.h>
-#ifdef STM32F4XX
-#include <stm32f4xx_i2c.h>
-#else
-#include <stm32l1xx_i2c.h>
-#endif
+#include <stm32xxxx_i2c.h>
 
 typedef enum {
 	dutyCycle_2 = 0,
@@ -16,6 +12,7 @@ typedef enum {
 				      ((CYCLE) == 1))
 typedef struct {
 	uint8_t id;              // I2C id number
+	uint8_t lock;            // Module lock status
 	I2C_TypeDef* I2Cx;       // Reference to the I2C
 	uint32_t clockSpeed;     // Specifies the clock frequency. Must be below 400 KHz
 	DutyCycleType dutyCycle; // Specifies the I2C fast mode duty cycle
@@ -25,21 +22,12 @@ Status_t I2C_HAL_InitStruct(I2C_HALType *I2C_HALStruct, uint8_t id);
 Status_t I2C_HAL_Init(I2C_HALType *I2C_HALStruct);
 Status_t I2C_HAL_Read(I2C_HALType *I2C_HALStruct, uint8_t *buf, uint32_t nbyte, uint8_t slaveAddress);
 Status_t I2C_HAL_Write(I2C_HALType *I2C_HALStruct, const uint8_t* buf, uint32_t nbyte, uint8_t slaveAddress);
-Status_t I2C_HAL_Deinit(I2C_HALType *I2C_HALStruct);
+Status_t I2C_HAL_DeInit(I2C_HALType *I2C_HALStruct);
 
-#define Timed(x) Timeout = 0xFFFF; while (x) { if (Timeout-- == 0) goto errReturn;}
-
-// TODO: Move the platform specific I2C instances, GPIO pins and clocks to a stm32fxx config file
+// TODO: Move the platform specific I2C instances to a BOARD FILE, GPIO pins and clocks to a stm32fxx config file
 // 
 // * Nucleo Board Pins
 // * D15 PB8 SCL
 // * D14 PB9 SDA
-#define I2C_MAX_CLOCK_SPEED 400000
-
-#ifdef STM32F4XX
-#define I2C_MAX_ID 3
-#else
-#define I2C_MAX_ID 2
-#endif
 
 #endif
