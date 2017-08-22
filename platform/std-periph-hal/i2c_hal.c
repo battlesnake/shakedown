@@ -1,15 +1,14 @@
+#include <stm32xxxx_gpio.h>
 #ifdef STM32F4XX
-#include <stm32f4xx_gpio.h>
 #include <stm32f4xx_rcc.h>
 #else
-#include <stm32l1xx_gpio.h>
 #include <stm32l1xx_rcc.h>
 #endif
 #include <stdio.h>
 #include "i2c_hal.h"
 
 #ifdef STM32F4XX
-I2C_TypeDef *I2Cs[I2C_MAX_ID] = {I2C1, I2C2, I2C3};
+I2C_TypeDef *I2Cs[I2C_MAX_ID] = {I2C1, I2C2, I2C3}; 
 #else
 I2C_TypeDef *I2Cs[I2C_MAX_ID] = {I2C1, I2C2};
 #endif
