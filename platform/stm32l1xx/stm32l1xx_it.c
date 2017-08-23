@@ -31,20 +31,20 @@
 #include <FreeRTOS.h>
 #include "stm32l1xx_it.h"
 #include <core_cm3.h>
-#include <semphr.h>
+//#include <semphr.h>
 #include "main.h"
 #include <stdio.h>
-#include <stm32l1xx_adc.h>
-#include <stm32l1xx_dma.h>
-#include <stm32l1xx_tim.h>
+//#include <stm32l1xx_adc.h>
+//#include <stm32l1xx_dma.h>
+//#include <stm32l1xx_tim.h>
 
-SemaphoreHandle_t xADCSemaphore;
+//SemaphoreHandle_t xADCSemaphore;
 
-void vISRCreateADCSemaphore(const UBaseType_t uxCounterSize, SemaphoreHandle_t *pxSemaphoreHandle)
-{
-       	xADCSemaphore = xSemaphoreCreateCounting(uxCounterSize, 0);
-	*pxSemaphoreHandle = xADCSemaphore;
-}
+//void vISRCreateADCSemaphore(const UBaseType_t uxCounterSize, SemaphoreHandle_t *pxSemaphoreHandle)
+//{
+//       	xADCSemaphore = xSemaphoreCreateCounting(uxCounterSize, 0);
+//	*pxSemaphoreHandle = xADCSemaphore;
+//}
 
 /** @addtogroup Template_Project
   * @{
@@ -70,6 +70,39 @@ void vISRCreateADCSemaphore(const UBaseType_t uxCounterSize, SemaphoreHandle_t *
 {
 }*/
 
+void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress )
+{
+/* These are volatile to try and prevent the compiler/linker optimising them
+away as the variables never actually get used.  If the debugger won't show the
+values of the variables, make them global my moving their declaration outside
+of this function. */
+volatile uint32_t r0;
+volatile uint32_t r1;
+volatile uint32_t r2;
+volatile uint32_t r3;
+volatile uint32_t r12;
+volatile uint32_t lr; /* Link register. */
+volatile uint32_t pc; /* Program counter. */
+volatile uint32_t psr;/* Program status register. */
+
+    r0 = pulFaultStackAddress[ 0 ];
+    r1 = pulFaultStackAddress[ 1 ];
+    r2 = pulFaultStackAddress[ 2 ];
+    r3 = pulFaultStackAddress[ 3 ];
+
+    r12 = pulFaultStackAddress[ 4 ];
+    lr = pulFaultStackAddress[ 5 ];
+    pc = pulFaultStackAddress[ 6 ];
+    psr = pulFaultStackAddress[ 7 ];
+
+    __asm__("BKPT");
+    
+    printf("r0 = %d, r1 = %d, r2 = %d, r3 = %d, r12 = %d, lr = %d, pc = %d, psr = %d.\n", (int)r0, (int)r1, (int)r2, (int)r3, (int)r12, (int)lr, (int)pc, (int)psr);
+
+    /* When the following line is hit, the variables contain the register values. */
+    for( ;; );
+}
+
 /**
   * @brief  This function handles Hard Fault exception.
   * @param  None
@@ -77,6 +110,18 @@ void vISRCreateADCSemaphore(const UBaseType_t uxCounterSize, SemaphoreHandle_t *
   */
 void HardFault_Handler(void)
 {
+	__asm volatile
+    (
+        " tst lr, #4                                                \n"
+        " ite eq                                                    \n"
+        " mrseq r0, msp                                             \n"
+        " mrsne r0, psp                                             \n"
+        " ldr r1, [r0, #24]                                         \n"
+        " ldr r2, handler2_address_const                            \n"
+        " bx r2                                                     \n"
+        " handler2_address_const: .word prvGetRegistersFromStack    \n"
+    );
+	
   /* Go to infinite loop when Hard Fault exception occurs */
   while (1)
   {
@@ -164,86 +209,3 @@ void DebugMon_Handler(void)
 /*  available peripheral interrupt handler's name please refer to the startup */
 /*  file (startup_stm32l1xx_xx.s).                                            */
 /******************************************************************************/
-
-/**
-  * @brief  This function handles the TIM1 Capture Compare interrupt request.
-  * @param  None
-  * @retval None
-  */
-void TIM2_CC_IRQHandler(void)
-{
-       	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-	//printf("CNT register at address 0x%08x = 0x%08x\n", (int)&TIM2->CNT, (int)TIM2->CNT);
-	
-       	/* Check if the interrupt source */
-       	if(TIM_GetITStatus(TIM2, TIM_IT_CC2))
-	{		
-       	       	/* Clear the interrupt flag */
-		TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);		
-      	}
-
-        /* Perform a context switch to the highest priority task */
-        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
-
-/**
-  * @brief  This function handles ADC interrupt request.
-  * @param  None
-  * @retval None
-  */
-void ADC_IRQHandler(void)
-{
-       	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-	printf("enter ADC interrupt handler\n");
-	
-       	/* Check if the interrupt source is the ADC end of conversion */
-       	if(ADC_GetITStatus(ADC1, ADC_IT_EOC))
-	{		
-       	       	/* Clear the interrupt flag */
-		ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
-		printf("EOC interrupt\n");
-       	       	/* Give a semaphore to the ADC */
-       	       	//xSemaphoreGiveFromISR(xADCSemaphore, &xHigherPriorityTaskWoken);
-      	}
-
-	printf("exiting ADC interrupt handler\n");
-  
-        /* Perform a context switch to the highest priority task */
-        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
-
-void DMA1_Channel1_IRQHandler(void)
-{
-       	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-	//print_regs((uint32_t *)DMA2);
-	//DMA2 0x40026400
-	//ADC1 0x40012000
-
-	/* Clear half transfer interrupt */
-	if(DMA_GetITStatus(DMA1_IT_HT1))
-	{		
-       	       	/* Clear the interrupt flag */
-		DMA_ClearITPendingBit(DMA1_IT_HT1);
-	}
-       	/* Check if the interrupt source is transfer complete */
-	else if(DMA_GetITStatus(DMA1_IT_TC1))
-	{		
-       	       	/* Clear the interrupt flag */
-		DMA_ClearITPendingBit(DMA1_IT_TC1);
-
-		/* Give the semaphore */
-       	       	xSemaphoreGiveFromISR(xADCSemaphore, &xHigherPriorityTaskWoken);		
-      	}
-
-        /* Perform a context switch to the highest priority task */
-        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
-
-/**
-  * @}
-  */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

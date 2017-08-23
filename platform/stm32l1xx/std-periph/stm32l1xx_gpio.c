@@ -146,16 +146,6 @@ void GPIO_DeInit(GPIO_TypeDef* GPIOx)
     RCC_AHBPeriphResetCmd(RCC_AHBPeriph_GPIOE, ENABLE);
     RCC_AHBPeriphResetCmd(RCC_AHBPeriph_GPIOE, DISABLE);
   }
-  else if(GPIOx == GPIOF)
-  {
-    RCC_AHBPeriphResetCmd(RCC_AHBPeriph_GPIOF, ENABLE);
-    RCC_AHBPeriphResetCmd(RCC_AHBPeriph_GPIOF, DISABLE);
-  }
-  else if(GPIOx == GPIOG)
-  {
-    RCC_AHBPeriphResetCmd(RCC_AHBPeriph_GPIOG, ENABLE);
-    RCC_AHBPeriphResetCmd(RCC_AHBPeriph_GPIOG, DISABLE);
-  }   
   else
   {
     if(GPIOx == GPIOH)

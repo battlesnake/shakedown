@@ -6716,9 +6716,11 @@ typedef struct
 
 #define I2C_MAX_CLOCK_SPEED 400000
 #define I2C_MAX_ID 2
-
 #define I2Cs(id) *(((uint32_t[]){I2C1_BASE, I2C2_BASE}) + (id));
 
+#define SPI_MAX_ID 2
+#define SPIs(id) (SPI_TypeDef *)(((uint32_t[]){SPI1_BASE, SPI2_BASE}) + (id));
+  
 #ifdef __cplusplus
 }
 #endif

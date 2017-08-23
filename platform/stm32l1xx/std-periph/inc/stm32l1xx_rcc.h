@@ -275,8 +275,6 @@ typedef struct
 #define RCC_AHBPeriph_GPIOD               RCC_AHBENR_GPIODEN
 #define RCC_AHBPeriph_GPIOE               RCC_AHBENR_GPIOEEN
 #define RCC_AHBPeriph_GPIOH               RCC_AHBENR_GPIOHEN
-#define RCC_AHBPeriph_GPIOF               RCC_AHBENR_GPIOFEN
-#define RCC_AHBPeriph_GPIOG               RCC_AHBENR_GPIOGEN
 #define RCC_AHBPeriph_CRC                 RCC_AHBENR_CRCEN
 #define RCC_AHBPeriph_FLITF               RCC_AHBENR_FLITFEN
 #define RCC_AHBPeriph_SRAM                RCC_AHBLPENR_SRAMLPEN

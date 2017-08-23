@@ -2,12 +2,10 @@
 #include <stm32xxxx_rcc.h>
 #include <stm32xxxx_gpio.h>
 #include <stm32xxxx_tim.h>
-#include "spi_hdl.h"
+#include "spi_hal.h"
 #include "crc_calc.h"
 
-#ifdef STM32F4XX
-
-SPI_TypeDef *SPIs[SPI_MAX_ID] = {SPI1, SPI2, SPI3, SPI4, SPI5, SPI6};
+#ifdef STM32F4XX // Add definitions in board file and remove the if statment!!!!!
 
 static uint16_t SPI_SendReceive16(uint16_t writeData);
 static void delayus(uint8_t us);
@@ -22,28 +20,29 @@ Status_t SPI_HAL_InitStruct(SPI_HALType *SPI_HALStruct, uint8_t id)
 
 	// Initialize the I2C HDL reference
 	if (id > 0 && id <= SPI_MAX_ID) {
-		SPI_HALStruct->SPIx = SPIs[id-1];
+		SPI_HALStruct->SPIx = (SPI_TypeDef *)SPIs(id-1);
 	} else {
 		return Error;
 	}
-	
-	SPI_HALStruct->SPIx = SPI1;
+
 	SPI_HALStruct->mode = SPI_Mode_Master;
 	SPI_HALStruct->direction = SPI_Direction_2Lines_FullDuplex;
         SPI_HALStruct->dataSize = SPI_DataSize_16b;
+
+	return Success;
 }
 
 /*
  * Start the corresponding I2C interface depending on the HAL structure parameters
  */
-void SPI_HAL_Init(SPI_HALType *SPI_HALStruct)
+Status_t SPI_HAL_Init(SPI_HALType *SPI_HALStruct)
 {
         SPI_InitTypeDef SPI_HDLStruct;
 
 	// Check if parameters are properly set
 	if (SPI_HALStruct->id > SPI_MAX_ID || \
 	    SPI_HALStruct->id == 0 || \
-	    !IS_SPI_ALL_PERIPH(I2C_HALStruct->SPIx) || \
+	    !IS_SPI_ALL_PERIPH(SPI_HALStruct->SPIx) || \
 	    !IS_SPI_DIRECTION_MODE(SPI_HALStruct->direction) || \
 	    !IS_SPI_MODE(SPI_HALStruct->mode) || \
 	    !IS_SPI_DATASIZE(SPI_HALStruct->dataSize)) {
@@ -71,9 +70,11 @@ void SPI_HAL_Init(SPI_HALType *SPI_HALStruct)
 	SPI_HDLStruct.SPI_NSS = SPI_NSS_Soft | SPI_NSSInternalSoft_Set;
 	SPI_HDLStruct.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_64;
 	SPI_HDLStruct.SPI_FirstBit = SPI_FirstBit_MSB;
-	SPI_HDL(SPI_HALStruct->SPIx, &SPI_HDLStruct);
+	SPI_Init(SPI_HALStruct->SPIx, &SPI_HDLStruct);
 
 	SPI_Cmd(SPI1, ENABLE);
+
+	return Success;
 }
 
 static uint16_t SPI_SendReceive16(uint16_t writeData)

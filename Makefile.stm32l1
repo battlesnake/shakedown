@@ -4,7 +4,7 @@ clock_rate ?= 8000000
 
 defines += USE_STDPERIPH_DRIVER
 defines += STM32L1XX
-defines += STM32L10_15xxx
+defines += STM32L152xB 
 defines += HSE_VALUE=$(clock_rate)
 defines += __FPU_PRESENT=0
 defines += __FPU_USED=0
@@ -13,13 +13,13 @@ defines += ARM_MATH_CM3
 
 flash_addr = 0x8000000
 
-mach_flags += -mfloat-abi=softfp -mcpu=cortex-m3
+mach_flags += -mcpu=cortex-m3
 
 c_flags += $(mach_flags)
 
 ldflags += $(mach_flags)
-#ldflags += -u _scanf_float -u _printf_float -fno-exceptions
-ldflags += -fno-exceptions
+ldflags += -u _scanf_float -u _printf_float -fno-exceptions
+#ldflags += -fno-exceptions
 ldflags += -Wl,-T$(link_script)
 
 libs += c gcc

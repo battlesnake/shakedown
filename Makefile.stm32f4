@@ -125,6 +125,8 @@ objects-platform += std-periph/stm32f4xx_dma.o
 
 objects-platform-hal = 
 objects-platform-hal += std-periph-hal/i2c_hal.o
+objects-platform-hal += std-periph-hal/spi_hal.o
+objects-platform-hal += std-periph-hal/crc_calc.o
 
 ifeq ($(use_semihosting),n)
 objects-platform += syscalls.o

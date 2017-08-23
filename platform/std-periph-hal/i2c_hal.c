@@ -14,7 +14,7 @@ Status_t I2C_HAL_InitStruct(I2C_HALType *I2C_HALStruct, uint8_t id)
         
 	// Initialize the I2C HDL reference
 	if (id > 0 && id <= I2C_MAX_ID) {
-		I2C_HALStruct->I2Cx = (I2C_TypeDef *) I2Cs(id-1);
+		I2C_HALStruct->I2Cx = (I2C_TypeDef *)I2Cs(id-1);
 	} else {
 		return Error;
 	}
@@ -48,12 +48,16 @@ Status_t I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 		return Error;
 	}
 
+	if (I2C_HALStruct->lock == 1) {
+		return Error;
+	}
+
 	I2C_HALStruct->lock = 1;  
 
 	// Enable clocks and GPIOs according to the I2C id
 	if (I2C_HALStruct->id == 1) {
 		/* Enable the clock for the GPIOs */
-		I2C1_GPIOClockEnable(I2C1_GPIO_Clock, ENABLE);
+		I2C1_GPIO_ClockEnable(I2C1_GPIO_Clock, ENABLE);
 		
 		// Connect the I2C function to the pins
 		GPIO_PinAFConfig(I2C1_GPIO, I2C1_GPIO_Pin1, GPIO_AF_I2C1);
@@ -71,7 +75,7 @@ Status_t I2C_HAL_Init(I2C_HALType *I2C_HALStruct)
 		/* Enable the clock for the I2C */
 	        I2C1_ClockEnable(I2C1_Clock, ENABLE);
 	} else if (I2C_HALStruct->id == 2) {
-		// TODO
+		// TODO: fill in the board definitions and test it on a board
 	} else {
 		// TODO
 	}

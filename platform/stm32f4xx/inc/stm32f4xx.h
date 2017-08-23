@@ -11436,8 +11436,10 @@ typedef struct
 
 #define I2C_MAX_ID 3
 #define I2C_MAX_CLOCK_SPEED 400000
-
 #define I2Cs(id) *(((uint32_t[]){I2C1_BASE, I2C2_BASE, I2C3_BASE}) + (id));
+
+#define SPI_MAX_ID 6
+#define SPIs(id) *(((uint32_t[]){SPI1_BASE, SPI2_BASE, SPI3_BASE, SPI4_BASE, SPI5_BASE, SPI6_BASE}) + (id));
 
 #ifdef __cplusplus
 }

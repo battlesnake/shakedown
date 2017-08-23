@@ -52,9 +52,7 @@
                                     ((PERIPH) == GPIOC) || \
                                     ((PERIPH) == GPIOD) || \
                                     ((PERIPH) == GPIOE) || \
-                                    ((PERIPH) == GPIOH) || \
-                                    ((PERIPH) == GPIOF) || \
-                                    ((PERIPH) == GPIOG))
+                                    ((PERIPH) == GPIOH)) 
 
 /** @defgroup Configuration_Mode_enumeration 
   * @{

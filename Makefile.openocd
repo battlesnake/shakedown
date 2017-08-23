@@ -16,7 +16,7 @@ ifeq ($(use_semihosting),y)
 else
 	$(eval gdb_semi = print "Semihosting not enabled/available")
 endif
-	$(GDB) -q -se $< -ex 'tar ext :3333' -ex '$(gdb_semi)' -ex 'monitor reset halt' -ex 'monitor flash protect 0 0 11 off' -ex 'monitor flash write_image erase $<' -ex 'monitor reset run' -ex 'monitor reset halt' -ex 'b main' -ex 'c'
+	$(GDB) -q -se $< -ex 'tar ext :3333' -ex '$(gdb_semi)' -ex 'monitor reset halt' -ex 'monitor flash protect 0 0 11 off' -ex 'monitor flash write_image erase $<' -ex 'monitor reset run' -ex 'monitor reset halt' -ex 'b main'
 
 .PHONY: debugserver-openocd
 debugserver-openocd:

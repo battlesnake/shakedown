@@ -12,7 +12,7 @@ typedef union {
 
 typedef struct {
 	uint8_t id;         // Module id number
-	I2C_TypeDef* SPIx;  // Reference to the module
+	SPI_TypeDef* SPIx;  // Reference to the module
 	uint16_t direction; // Sets the direction of the transfer
 	uint16_t mode;      // Sets slave or master mode
 	uint16_t dataSize;  // Sets the interface message data size
