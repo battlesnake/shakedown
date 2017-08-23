@@ -27,6 +27,8 @@ int main(int argc, char *argv[])
 	v++;
 
 	test_checklist_execute(4);
+
+	test_checklist_execute(4);
 	
 	//print_build_configuration();
 	//printf("Dummy program, run by default when not invoking the test runner\n");

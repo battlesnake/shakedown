@@ -25,7 +25,7 @@ nbsp =  
 strip_debug = -g
 
 # Warning flags
-w_flags = -Wall -Wextra -Wno-unused-parameter -Werror
+w_flags = -Wall -Wextra -Wno-unused-parameter
 
 # Common to both cflags and cxxflags
 c_flags = -ffunction-sections -fdata-sections -O$(o) $(strip_debug)

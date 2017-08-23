@@ -18,13 +18,13 @@ TEST_DEFINE(i2c_ad7414)
 	//test_assert("AD7414 initialized", status);
 
 	status = ad7414.getTemperature(&temperature);
-
-	__asm__("BKPT");
 	
 	//sprintf(strBuf, "Temperature acquired: %d C", (int)temperature);
 	//test_assert(strBuf, status && temperature > MIN_TEMP && temperature < MAX_TEMP);
 
-	ad7414.deinitialize();
+	status = ad7414.deinitialize();
 
+	//__asm__("BKPT");
+	
 	test_assert("AD7414 deinitialized", status);
 }
