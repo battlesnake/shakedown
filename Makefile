@@ -22,7 +22,7 @@ space = $(spacebound) $(spacebound)
 nbsp =  
 
 # -g or -s
-strip_debug = -g
+strip_debug = -g 
 
 # Warning flags
 w_flags = -Wall -Wextra -Wno-unused-parameter

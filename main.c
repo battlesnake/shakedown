@@ -26,9 +26,9 @@ int main(int argc, char *argv[])
 
 	v++;
 
-	test_checklist_execute(4);
+	test_checklist_execute(2); // ADC multichannel with DMA and Timer sync test
 
-	test_checklist_execute(4);
+	//test_checklist_execute(4); // I2C temperature sensor test
 	
 	//print_build_configuration();
 	//printf("Dummy program, run by default when not invoking the test runner\n");

@@ -124,6 +124,8 @@ objects-platform += std-periph/stm32l1xx_adc.o
 objects-platform += std-periph/stm32l1xx_i2c.o
 objects-platform += std-periph/stm32l1xx_dma.o
 objects-platform += std-periph/stm32l1xx_rcc.o
+objects-platform += std-periph/stm32l1xx_tim.o
+objects-platform += std-periph/misc.o
 
 objects-platform-hal = 
 objects-platform-hal += std-periph-hal/i2c_hal.o

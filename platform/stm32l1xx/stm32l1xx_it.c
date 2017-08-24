@@ -33,19 +33,22 @@
 #include <core_cm3.h>
 //#include <semphr.h>
 #include "main.h"
-#include <stdio.h>
-//#include <stm32l1xx_adc.h>
-//#include <stm32l1xx_dma.h>
-//#include <stm32l1xx_tim.h>
+//#include <stdio.h>
+#include <stm32xxxx_adc.h>
+#include <stm32xxxx_dma.h>
+#include <stm32xxxx_tim.h>
 
-//SemaphoreHandle_t xADCSemaphore;
+extern void vTaskADC(void);
 
-//void vISRCreateADCSemaphore(const UBaseType_t uxCounterSize, SemaphoreHandle_t *pxSemaphoreHandle)
-//{
-//       	xADCSemaphore = xSemaphoreCreateCounting(uxCounterSize, 0);
-//	*pxSemaphoreHandle = xADCSemaphore;
-//}
+/*
+SemaphoreHandle_t xADCSemaphore;
 
+void vISRCreateADCSemaphore(const UBaseType_t uxCounterSize, SemaphoreHandle_t *pxSemaphoreHandle)
+{
+	xADCSemaphore = xSemaphoreCreateCounting(uxCounterSize, 0);
+	*pxSemaphoreHandle = xADCSemaphore;
+}
+*/
 /** @addtogroup Template_Project
   * @{
   */
@@ -97,7 +100,7 @@ volatile uint32_t psr;/* Program status register. */
 
     __asm__("BKPT");
     
-    printf("r0 = %d, r1 = %d, r2 = %d, r3 = %d, r12 = %d, lr = %d, pc = %d, psr = %d.\n", (int)r0, (int)r1, (int)r2, (int)r3, (int)r12, (int)lr, (int)pc, (int)psr);
+    //printf("r0 = %d, r1 = %d, r2 = %d, r3 = %d, r12 = %d, lr = %d, pc = %d, psr = %d.\n", (int)r0, (int)r1, (int)r2, (int)r3, (int)r12, (int)lr, (int)pc, (int)psr);
 
     /* When the following line is hit, the variables contain the register values. */
     for( ;; );
@@ -209,3 +212,96 @@ void DebugMon_Handler(void)
 /*  available peripheral interrupt handler's name please refer to the startup */
 /*  file (startup_stm32l1xx_xx.s).                                            */
 /******************************************************************************/
+/**
+  * @brief  This function handles the TIM1 Capture Compare interrupt request.
+  * @param  None
+  * @retval None
+  */
+
+void TIM2_IRQHandler(void)
+{
+       	//BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+	//__asm__("BKPT");
+	
+	//printf("CNT register at address 0x%08x = 0x%08x\n", (int)&TIM2->CNT, (int)TIM2->CNT);
+	
+       	// Check if the interrupt source
+       	if(TIM_GetITStatus(TIM2, TIM_IT_CC2))
+	{		
+       	       	// Clear the interrupt flag
+		TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);		
+      	}
+
+	// Perform a context switch to the highest priority task
+        //portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+/**
+  * @brief  This function handles ADC interrupt request.
+  * @param  None
+  * @retval None
+  */
+
+void ADC1_IRQHandler(void)
+{
+       	//BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+	__asm__("BKPT");
+	
+	//printf("enter ADC interrupt handler\n");
+	
+       	// Check if the interrupt source is the ADC end of conversion
+       	if(ADC_GetITStatus(ADC1, ADC_IT_EOC))
+	{		
+       	       	// Clear the interrupt flag
+		ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
+		//printf("EOC interrupt\n");
+                // Give a semaphore to the ADC
+       	       	//xSemaphoreGiveFromISR(xADCSemaphore, &xHigherPriorityTaskWoken);
+      	}
+
+	//printf("exiting ADC interrupt handler\n");
+  
+        // Perform a context switch to the highest priority task
+        //portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+void DMA1_Channel1_IRQHandler(void)
+{
+       	//BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+	//ADC1 0x40012000
+	
+	// Clear half transfer interrupt
+	if(DMA_GetITStatus(DMA1_IT_HT1))
+	{		
+       	       	// Clear the interrupt flag
+		DMA_ClearITPendingBit(DMA1_IT_HT1);
+	}
+       	// Check if the interrupt source is transfer complete
+	else if(DMA_GetITStatus(DMA1_IT_TC1))
+	{		
+       	       	// Clear the interrupt flag
+		DMA_ClearITPendingBit(DMA1_IT_TC1);
+
+		// Give the semaphore
+       	       	//xSemaphoreGiveFromISR(xADCSemaphore, &xHigherPriorityTaskWoken);
+
+		vTaskADC();
+      	}
+
+        /* Perform a context switch to the highest priority task */
+        //portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+/**
+  * @}
+  */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+
+void WWDG_IRQHandler(void)
+{
+	__asm__("BKPT");
+}
