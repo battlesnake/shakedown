@@ -6,7 +6,7 @@
 #include <stm32xxxx_dma.h>
 #include <config.h>
 
-#define BUFFER_SIZE 4
+#define BUFFER_SIZE 11
 
 /* 
  * The ADC semaphore is created in stm32l1xx_it.c as it is used from the ISR.
@@ -15,7 +15,7 @@
 //SemaphoreHandle_t xADCSemaphore;
 
 static void vADCStart(void);
-static void normalization(uint32_t *v);
+static uint16_t normalization(uint16_t v);
 static void clocksInit(void);
 static void GPIOInit(void);
 static void TIMInit(TIM_TypeDef* TIMx);
@@ -25,7 +25,8 @@ static void NVICInit(void);
 static void DMAInit(void);
 void vTaskADC(void);
 
-uint16_t adcBuffer[BUFFER_SIZE*2];
+uint16_t adcBuffer[BUFFER_SIZE];
+uint16_t mvBuffer[BUFFER_SIZE];
 
 TEST_DEFINE(adc_multichannel)
 {
@@ -58,9 +59,14 @@ void vADCStart(void)
 }
 
 /* Convert the raw 12 bits ADC reading in mV */
-static void normalization(uint32_t *v)
+static uint16_t normalization(uint16_t v)
 {
-        *v = (*v * 3200) >> 12;
+	uint32_t voltage;
+
+	voltage = (uint32_t) v;
+	voltage *= 3000;
+	
+        return (voltage >> 12); 
 }
 
 static void clocksInit()
@@ -93,18 +99,22 @@ static void clocksInit()
 static void GPIOInit()
 {
 	GPIO_InitTypeDef GPIO_InitStruct;
+
+	// Configure the pins for the PWM
+	GPIO_StructInit(&GPIO_InitStruct);
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
+	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_40MHz;
+	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+	
 	
 	// Configure the pin AF muxing for the OC PWM
 	GPIO_PinAFConfig(GPIOD, GPIO_PinSource13, GPIO_AF_TIM4); // TIM4_CH2
 	GPIO_PinAFConfig(GPIOD, GPIO_PinSource14, GPIO_AF_TIM4); // TIM4_CH3
 	GPIO_PinAFConfig(GPIOD, GPIO_PinSource15, GPIO_AF_TIM4); // TIM4_CH4
-
-	// Configure the pins for the PWM
-	GPIO_StructInit(&GPIO_InitStruct);
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
-	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-	GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 	// Configure the pins of the analog inputs
 	GPIO_StructInit(&GPIO_InitStruct); // ADC9 ADC10 ADC1 ADC2
@@ -148,14 +158,19 @@ static void PWMInit(TIM_TypeDef* TIMx)
     	TIM_OCInitStruct.TIM_Pulse = 0x01F4; // 500 -> 500/1000 -> 50% duty cycle
 	TIM_OCInitStruct.TIM_OCPolarity = TIM_OCPolarity_High; 
 	TIM_OC2Init(TIMx, &TIM_OCInitStruct); // Enable chanel 2, 3 & 4 with the same settings
-	TIM_OC3Init(TIMx, &TIM_OCInitStruct);
-	TIM_OC4Init(TIMx, &TIM_OCInitStruct);
-	TIM_CCxCmd(TIMx, TIM_Channel_2, TIM_CCx_Enable);
-	TIM_CCxCmd(TIMx, TIM_Channel_3, TIM_CCx_Enable);
-	TIM_CCxCmd(TIMx, TIM_Channel_4, TIM_CCx_Enable);
 	
 	TIM_OC2PreloadConfig(TIMx, TIM_OCPreload_Enable);
+
+    	TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
+    	TIM_OCInitStruct.TIM_Pulse = 0x01F4;
+	TIM_OC3Init(TIMx, &TIM_OCInitStruct);
+	
 	TIM_OC3PreloadConfig(TIMx, TIM_OCPreload_Enable);
+
+      	TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
+    	TIM_OCInitStruct.TIM_Pulse = 0x01F4;
+	TIM_OC4Init(TIMx, &TIM_OCInitStruct);
+	
 	TIM_OC4PreloadConfig(TIMx, TIM_OCPreload_Enable);
 
 	TIM_ARRPreloadConfig(TIMx, ENABLE);
@@ -227,19 +242,19 @@ static void ADCInit(ADC_TypeDef* ADCx)
 	ADC_InitStruct.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising;
 	ADC_InitStruct.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T2_CC2;
 	ADC_InitStruct.ADC_ScanConvMode = ENABLE; // ENABLE for multichannel
-	ADC_InitStruct.ADC_NbrOfConversion = 4;
+	ADC_InitStruct.ADC_NbrOfConversion = 11;
 	ADC_Init(ADCx, &ADC_InitStruct);
-	ADC_RegularChannelConfig(ADCx, ADC_Channel_1, 1, ADC_SampleTime_48Cycles);    // VBAT  PA
+	ADC_RegularChannelConfig(ADCx, ADC_Channel_1, 1, ADC_SampleTime_48Cycles);    // VBAT  PA1
 	ADC_RegularChannelConfig(ADCx, ADC_Channel_14, 2, ADC_SampleTime_48Cycles);   // ADC1  PC4
 	ADC_RegularChannelConfig(ADCx, ADC_Channel_15, 3, ADC_SampleTime_48Cycles);   // ADC2  PC5
 	ADC_RegularChannelConfig(ADCx, ADC_Channel_8, 4, ADC_SampleTime_48Cycles);  // ADC3  PB0
-	//ADC_RegularChannelConfig(ADCx, ADC_Channel_9, 5, ADC_SampleTime_48Cycles);  // ADC4  PB1
-        //ADC_RegularChannelConfig(ADCx, ADC_Channel_22, 6, ADC_SampleTime_48Cycles); // ADC5  PE7
-        //ADC_RegularChannelConfig(ADCx, ADC_Channel_23, 7, ADC_SampleTime_48Cycles); // ADC6  PE8
-        //ADC_RegularChannelConfig(ADCx, ADC_Channel_24, 8, ADC_SampleTime_48Cycles); // ADC7  PE9
-        //ADC_RegularChannelConfig(ADCx, ADC_Channel_25, 9, ADC_SampleTime_48Cycles); // ADC8  PE10
-	//ADC_RegularChannelConfig(ADCx, ADC_Channel_12, 10, ADC_SampleTime_48Cycles); // ADC9  PC2
-	//ADC_RegularChannelConfig(ADCx, ADC_Channel_13, 11, ADC_SampleTime_48Cycles); // ADC10 PC3
+	ADC_RegularChannelConfig(ADCx, ADC_Channel_9, 5, ADC_SampleTime_48Cycles);  // ADC4  PB1
+        ADC_RegularChannelConfig(ADCx, ADC_Channel_22, 6, ADC_SampleTime_48Cycles); // ADC5  PE7
+        ADC_RegularChannelConfig(ADCx, ADC_Channel_23, 7, ADC_SampleTime_48Cycles); // ADC6  PE8
+        ADC_RegularChannelConfig(ADCx, ADC_Channel_24, 8, ADC_SampleTime_48Cycles); // ADC7  PE9
+        ADC_RegularChannelConfig(ADCx, ADC_Channel_25, 9, ADC_SampleTime_48Cycles); // ADC8  PE10
+	ADC_RegularChannelConfig(ADCx, ADC_Channel_12, 10, ADC_SampleTime_48Cycles); // ADC9  PC2
+	ADC_RegularChannelConfig(ADCx, ADC_Channel_13, 11, ADC_SampleTime_48Cycles); // ADC10 PC3
 
         ADC_DMARequestAfterLastTransferCmd(ADCx, ENABLE);
 	
@@ -295,14 +310,13 @@ static void TIMInit(TIM_TypeDef* TIMx)
 /* Acquiring the analog values after the ADC conversion is done */
 void vTaskADC(void)
 {
-	uint32_t fAnalogValue;
-
-	for(int i=0; i < BUFFER_SIZE; i++)
+	for(int i = 0; i < BUFFER_SIZE; i++)
 	{
-	        fAnalogValue = (uint32_t) *(adcBuffer + i);
-	        normalization(&fAnalogValue);
+	        mvBuffer[i] = normalization(adcBuffer[i]);
 	        //printf("analog at address 0x%08x = %dmV.\r\n", (int)(adcBuffer + i), (int)fAnalogValue);
 	}
+
+	//__asm__("BKPT");
 }
 
 
